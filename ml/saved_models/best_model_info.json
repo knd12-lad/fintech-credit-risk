@@ -1,0 +1,16 @@
+{
+  "model_name": "Random Forest",
+  "params": {
+    "max_depth": 16,
+    "min_samples_leaf": 2,
+    "n_estimators": 200,
+    "random_state": 42
+  },
+  "metrics": {
+    "Accuracy": 0.9347,
+    "Precision": 0.9743,
+    "Recall": 0.7207,
+    "F1": 0.8285,
+    "ROC-AUC": 0.935
+  }
+}
