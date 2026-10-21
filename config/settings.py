@@ -17,7 +17,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "risk_app.admin_apps.RiskWiseAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -100,3 +100,10 @@ AUTH_USER_MODEL = "risk_app.User"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
+
+
+
+
+from django.contrib.messages import constants as message_constants
+
+MESSAGE_TAGS = {message_constants.ERROR: "danger"}

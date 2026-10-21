@@ -1,0 +1,719 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About RiskWise | How It Works{% endblock %}
+
+{% block content %}
+<style>
+    .rw-about {
+        --navy: #0B132B;
+        --teal: #0F766E;
+        --gold: #F9D342;
+        --muted: #64748B;
+        color: var(--navy);
+        background: #F4F6F9;
+        font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .rw-about * {
+        box-sizing: border-box;
+    }
+
+    /* HERO */
+    .rw-about .hero {
+        padding: 65px 7%;
+        background: var(--navy);
+        color: #FFFFFF;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .rw-about .hero:after {
+        content: "";
+        position: absolute;
+        width: 330px;
+        height: 330px;
+        border: 1px solid rgba(20, 184, 166, 0.45);
+        border-radius: 50%;
+        right: -100px;
+        top: -150px;
+        pointer-events: none;
+    }
+
+    .rw-about .hero-grid {
+        max-width: 1120px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 40px;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Eyebrow labels: normal font weight */
+    .rw-about .eyebrow {
+        color: #5EEAD4;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+    }
+
+    .rw-about .hero h1 {
+        font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+        font-size: clamp(34px, 4vw, 49px);
+        font-weight: 800;
+        line-height: 1.2;
+        margin: 18px 0;
+        color: #FFFFFF !important;
+        opacity: 1;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Smaller Lower Risk text */
+    .rw-about .hero h1 .lower-risk {
+        display: inline-block;
+        color: #F9D342 !important;
+        font-size: 0.72em;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .rw-about .hero-copy {
+        color: #CBD5E1;
+        font-size: 15px;
+        line-height: 1.9;
+        max-width: 570px;
+    }
+
+    .rw-about .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 25px;
+    }
+
+    .rw-about .gold-btn,
+    .rw-about .outline-btn {
+        display: inline-block;
+        padding: 12px 19px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background-color 0.2s ease,
+                    color 0.2s ease,
+                    border-color 0.2s ease;
+    }
+
+    .rw-about .gold-btn {
+        background: #F9D342;
+        border: 1px solid #F9D342;
+        color: #0B132B;
+    }
+
+    .rw-about .gold-btn:hover {
+        background: #EAB91A;
+        border-color: #EAB91A;
+        color: #0B132B;
+    }
+
+    .rw-about .outline-btn {
+        color: #FFFFFF;
+        border: 1px solid #94A3B8;
+        background: transparent;
+    }
+
+    .rw-about .outline-btn:hover {
+        color: #FFFFFF;
+        border-color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* PREVIEW BOX */
+    .rw-about .preview {
+        padding: 25px;
+        border-radius: 20px;
+        border: 4px solid #3D566F;
+        background: #18243B;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+    }
+
+    .rw-about .preview-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 15px;
+        background: #123B48;
+        color: #5EEAD4;
+        display: grid;
+        place-items: center;
+        font-size: 27px;
+        margin-bottom: 18px;
+    }
+
+    .rw-about .preview h3 {
+        font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.4;
+        margin: 0 0 8px;
+        color: #F1F5F9 !important;
+        opacity: 1;
+    }
+
+    .rw-about .preview p {
+        color: #CBD5E1;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .rw-about .preview-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid #3B4A61;
+        color: #F1F5F9;
+        font-size: 13px;
+    }
+
+    .rw-about .preview-row:last-child {
+        border-bottom: 0;
+    }
+
+    .rw-about .preview-row strong {
+        color: #F9D342;
+    }
+
+    /* GENERAL SECTIONS */
+    .rw-about .section {
+        max-width: 1120px;
+        margin: auto;
+        padding: 58px 24px;
+    }
+
+    .rw-about .section-heading {
+        text-align: center;
+        max-width: 690px;
+        margin: 0 auto 30px;
+    }
+
+    .rw-about .section-heading h2 {
+        font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+        font-size: clamp(25px, 3vw, 34px);
+        font-weight: 800;
+        color: #0B132B;
+        margin: 0 0 12px;
+    }
+
+    .rw-about .section-heading p {
+        color: #64748B;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    /* FEATURE CARDS */
+    .rw-about .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .rw-about .card-item {
+        padding: 24px;
+        border: 1px solid #E2E8F0;
+        border-radius: 15px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(11, 19, 43, 0.035);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .rw-about .card-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(11, 19, 43, 0.08);
+    }
+
+    .rw-about .card-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: #DDF7F2;
+        color: #0F766E;
+        font-size: 22px;
+        margin-bottom: 17px;
+    }
+
+    .rw-about .card-item h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0B132B;
+        margin-bottom: 10px;
+    }
+
+    .rw-about .card-item p {
+        color: #64748B;
+        font-size: 13px;
+        line-height: 1.8;
+        margin: 0;
+    }
+
+    /* HOW IT WORKS */
+    .rw-about .steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .rw-about .step {
+        padding: 21px;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        background: #FFFFFF;
+    }
+
+    .rw-about .step-no {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid #F9D342;
+        background: #18243B;
+        color: #F9D342;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    .rw-about .step h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0B132B;
+        margin-bottom: 9px;
+    }
+
+    .rw-about .step p {
+        color: #64748B;
+        font-size: 12px;
+        line-height: 1.8;
+        margin: 0;
+    }
+
+    /* MODEL PANEL */
+    .rw-about .model-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 18px;
+        padding: 30px;
+    }
+
+    .rw-about .model-panel h2 {
+        font-size: 27px;
+        font-weight: 800;
+        color: #0B132B;
+        margin: 10px 0 15px;
+    }
+
+    .rw-about .model-panel p {
+        color: #64748B;
+        font-size: 13px;
+        line-height: 1.9;
+    }
+
+    /* Darker teal label for contrast with light model panel */
+    .rw-about .model-panel .eyebrow {
+    color: #0F766E;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+    .rw-about .model-row {
+        padding: 14px 0;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .rw-about .model-row:last-child {
+        border-bottom: 0;
+    }
+
+    .rw-about .model-row strong {
+        font-size: 14px;
+        color: #0B132B;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .rw-about .model-row span {
+        color: #64748B;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    /* MODEL METRICS */
+    .rw-about .metric-value {
+        font-size: 25px;
+        font-weight: 800;
+        color: #0F766E;
+    }
+
+    /* NOTICE */
+    .rw-about .notice {
+        padding: 16px 19px;
+        border-left: 4px solid #F9D342;
+        border-radius: 0 10px 10px 0;
+        background: #FFF8D8;
+        color: #594A13;
+        font-size: 12px;
+        line-height: 1.8;
+        margin-top: 20px;
+    }
+
+    /* CTA */
+    .rw-about .cta {
+        text-align: center;
+        background: #0B132B;
+        border-radius: 18px;
+        border: 1px solid #263957;
+        padding: 35px 24px;
+        color: #FFFFFF;
+    }
+
+    .rw-about .cta h2 {
+        font-size: 27px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 12px;
+    }
+
+    .rw-about .cta p {
+        color: #CBD5E1;
+        font-size: 13px;
+        line-height: 1.8;
+        margin-bottom: 22px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 850px) {
+        .rw-about .hero-grid,
+        .rw-about .model-panel {
+            grid-template-columns: 1fr;
+        }
+
+        .rw-about .cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .rw-about .steps {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 520px) {
+        .rw-about .hero {
+            padding: 45px 20px;
+        }
+
+        .rw-about .section {
+            padding: 42px 17px;
+        }
+
+        .rw-about .cards,
+        .rw-about .steps {
+            grid-template-columns: 1fr;
+        }
+
+        .rw-about .model-panel {
+            padding: 21px;
+        }
+
+        .rw-about .preview {
+            padding: 20px;
+        }
+
+        .rw-about .hero h1 {
+            font-size: 34px;
+        }
+
+        .rw-about .hero h1 .lower-risk {
+            font-size: 0.68em;
+        }
+    }
+    /* Model Performance Cards - Side by Side */
+.rw-about .performance-cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.rw-about .performance-cards .card-item {
+    padding: 20px;
+}
+
+.rw-about .performance-cards .metric-value {
+    font-size: 25px;
+    margin: 8px 0;
+}
+
+/* Tablet */
+@media (max-width: 850px) {
+    .rw-about .performance-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+    .rw-about .performance-cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="rw-about">
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-grid">
+
+            <div>
+                <div class="eyebrow">
+                    About RiskWise (Credit Risk Scoring &amp; Prediction)
+                </div>
+
+                <h1>
+                    Smarter Credit Decisions.<span class="lower-risk">Lower Risk.</span><br>
+                </h1>
+
+                <p class="hero-copy">
+                    RiskWise is a credit risk assessment web application
+                    designed to analyze loan applicant information and
+                    estimate default risk using machine learning.
+                    It presents results in a clear and understandable way.
+                </p>
+
+                <div class="actions">
+                    <a href="{% url 'home' %}" class="gold-btn">
+                        Explore RiskWise &rarr;
+                    </a>
+
+                    <a href="#how-it-works" class="outline-btn">
+                        How It Works
+                    </a>
+                </div>
+            </div>
+
+            <div class="preview">
+                <div class="preview-icon">&#9635;</div>
+
+                <h3>Credit Risk Intelligence</h3>
+
+                <p>
+                    From applicant data to a model-generated risk assessment.
+                </p>
+
+                <div class="preview-row">
+                    <span>01 · Loan Application</span>
+                    <strong>Input</strong>
+                </div>
+
+                <div class="preview-row">
+                    <span>02 · Data Processing</span>
+                    <strong>Prepare</strong>
+                </div>
+
+                <div class="preview-row">
+                    <span>03 · ML Prediction</span>
+                    <strong>Predict</strong>
+                </div>
+
+                <div class="preview-row">
+                    <span>04 · Risk Result</span>
+                    <strong>Analyze</strong>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- WHAT IS RISKWISE -->
+    <section class="section">
+        <div class="section-heading">
+            <h2>What Is RiskWise?</h2>
+            <p>
+                A practical FinTech project connecting web development,
+                data processing, machine learning and analytics.
+            </p>
+        </div>
+
+        <div class="cards">
+
+            <article class="card-item">
+                <div class="card-icon">&#9678;</div>
+                <h3>Project Objective</h3>
+                <p>
+                    Estimate loan default risk from applicant information
+                    and present the result through a clear web interface.
+                </p>
+            </article>
+
+            <article class="card-item">
+                <div class="card-icon">&#9881;</div>
+                <h3>Machine Learning</h3>
+                <p>
+                    Prepare input data and use a trained classification
+                    model to estimate the likelihood of loan default.
+                </p>
+            </article>
+
+            <article class="card-item">
+                <div class="card-icon">&#9636;</div>
+                <h3>Analytics &amp; History</h3>
+                <p>
+                    Support saved predictions and reporting so users and
+                    administrators can review available results.
+                </p>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how-it-works">
+        <div class="section-heading">
+            <h2>How It Works</h2>
+            <p>
+                Four steps explain the workflow from application details
+                to prediction and analysis.
+            </p>
+        </div>
+
+        <div class="steps">
+
+            <article class="step">
+                <div class="step-no">01</div>
+                <h3>Enter Loan Details</h3>
+                <p>
+                    The user enters the financial and loan information
+                    requested by the Credit Risk Checker.
+                </p>
+            </article>
+
+            <article class="step">
+                <div class="step-no">02</div>
+                <h3>Prepare Data</h3>
+                <p>
+                    The application validates submitted fields and prepares
+                    features in the format expected by the model.
+                </p>
+            </article>
+
+            <article class="step">
+                <div class="step-no">03</div>
+                <h3>Predict Risk</h3>
+                <p>
+                    The model estimates default probability, which the
+                    application uses to display the risk assessment.
+                </p>
+            </article>
+
+            <article class="step">
+                <div class="step-no">04</div>
+                <h3>Review Results</h3>
+                <p>
+                    The user reviews the result. Saved predictions can
+                    support history and reporting when enabled.
+                </p>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- MODEL DEVELOPMENT -->
+    <section class="section">
+        <div class="model-panel">
+
+            <div>
+                <div class="eyebrow">Machine Learning</div>
+
+                <h2>Model Development &amp; Evaluation</h2>
+
+                <p>
+                    Classification models can be trained and evaluated
+                    using prepared historical data. The selected model
+                    is then used to make predictions on new inputs.
+                </p>
+
+                <p>
+                    Accuracy, precision, recall and ROC-AUC can help
+                    evaluate a model on a separate test dataset.
+                </p>
+            </div>
+
+            <div>
+                <div class="model-row">
+                    <strong>Logistic Regression</strong>
+                    <span>
+                        A classification baseline for model comparison.
+                    </span>
+                </div>
+
+                <div class="model-row">
+                    <strong>Decision Tree</strong>
+                    <span>
+                        A tree-based classifier that learns decision rules.
+                    </span>
+                </div>
+
+                <div class="model-row">
+                    <strong>Random Forest</strong>
+                    <span>
+                        An ensemble model that combines multiple decision trees.
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        {% if performance %}
+        <div class="cards performance-cards" style="margin-top: 18px;">
+            {% for item in performance %}
+            <article class="card-item">
+                <div class="card-icon">&#10003;</div>
+
+                <h3>{{ item.label }}</h3>
+
+                <p class="metric-value">
+                    {{ item.value }}
+                </p>
+
+                <p>Reported model evaluation metric.</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- CTA -->
+    <section class="section">
+        <div class="cta">
+            <h2>Explore RiskWise</h2>
+
+            <p>
+                Return to the home page to explore the application and
+                continue to the features currently available.
+            </p>
+
+            <a href="{% url 'home' %}" class="gold-btn">
+                Back to Home &rarr;
+            </a>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{# RW-V4 #}
+<div class="mb-2">
+    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="input-group rw-input {% if field.errors %}has-error{% endif %}">
+        <span class="input-group-text"><i class="bi {{ icon }}"></i></span>
+        {{ field }}
+        {% if toggle %}
+        <button type="button" class="input-group-text rw-eye" data-toggle-password="{{ field.id_for_label }}" aria-label="Show or hide password">
+            <i class="bi bi-eye-slash"></i>
+        </button>
+        {% endif %}
+    </div>
+    {% for error in field.errors %}
+    <div class="text-danger small mt-1">{{ error }}</div>
+    {% endfor %}
+</div>

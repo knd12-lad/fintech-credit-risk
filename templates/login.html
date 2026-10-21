@@ -1,0 +1,39 @@
+{% extends "auth_base.html" %}
+{# RW-V4 #}
+{% load static %}
+
+{% block title %}Login | RiskWise{% endblock %}
+
+{% block content %}
+<div class="auth-head">
+    <div class="auth-logo">
+        <img src="{% static 'images/logo.svg' %}" alt="" width="36" height="36">
+        <span class="auth-brand">Risk<span class="rw-accent-dark">Wise</span></span>
+    </div>
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-sub">Login to access your risk assessment history</p>
+</div>
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger py-2 small">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    {% include "includes/auth_field.html" with field=form.username icon="bi-envelope" %}
+    {% include "includes/auth_field.html" with field=form.password icon="bi-lock" toggle=True %}
+
+    <button type="submit" class="btn btn-teal w-100 py-2 mt-3">Login <i class="bi bi-arrow-right"></i></button>
+</form>
+
+<hr class="my-3">
+
+<p class="text-center small mb-2">Don't have an account? <a href="{% url 'register' %}" class="auth-link">Register</a></p>
+<p class="text-center mb-0">
+    <a href="{% url 'home' %}" class="auth-home-link"><i class="bi bi-arrow-left"></i> Back to Home</a>
+</p>
+{% endblock %}

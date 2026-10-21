@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
+
 class UserManager(BaseUserManager):
     use_in_migrations = True
 

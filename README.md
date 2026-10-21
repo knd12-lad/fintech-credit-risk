@@ -21,11 +21,7 @@ Web-based credit risk analysis and loan default prediction system.
 
 
 ## Status
-- Phase 1 complete: project setup (Django + MySQL)
-- Phase 2 complete: dataset understanding
-- Phase 3 complete: data cleaning and EDA
-- Phase 4 complete: feature engineering and preprocessing
-- Phase 5 complete: model training and comparison (Random Forest, ROC-AUC 0.935)
-- Phase 6 complete: model saving, credit score (300-900) and risk level
-- Phase 7 complete: Django + MySQL (email login, 7 models)
-- Phase 8 next: website pages
+- Phase 1-7 complete: setup, dataset, EDA, features, model (Random Forest, ROC-AUC 0.935), prediction function, Django + MySQL
+- Phase 8 complete: website (Home, About, Contact, Login, Register, Profile, Risk Checker, Result, History) and RiskWise admin (dashboard, users, applicants, predictions with CSV export, analytics)
+- Phase 9 complete: Risk Checker is connected to the ML model and saves every prediction to MySQL
+- Phase 10 next: Power BI dashboard, testing, final documentation

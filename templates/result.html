@@ -1,0 +1,605 @@
+
+{% extends "base.html" %}
+
+{% block title %}Prediction Result | RiskWise{% endblock %}
+
+{% block content %}
+<style>
+    .result-page {
+        padding: 32px 0 26px;
+        background: #F4F6F9;
+        min-height: 85vh;
+    }
+
+    .result-heading {
+        color: #0B132B;
+        font-weight: 750;
+        letter-spacing: -0.5px;
+    }
+
+    .result-subtitle {
+        color: #64748B;
+    }
+
+    /* Compact Result Cards */
+    .result-card {
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        background: #FFFFFF;
+        box-shadow: 0 4px 14px rgba(11, 19, 43, 0.05);
+        height: 100%;
+        min-height: 155px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(11, 19, 43, 0.09);
+    }
+
+    .result-card .card-body {
+        padding: 17px 19px;
+    }
+
+    .result-icon {
+        width: 43px;
+        height: 43px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+    .score-icon {
+        color: #0B132B;
+        background: #E8EDF7;
+    }
+
+    .risk-icon {
+        color: #DC2626;
+        background: #FEE2E2;
+    }
+
+    .probability-icon {
+        color: #0F766E;
+        background: #CCFBF1;
+    }
+
+    .result-label {
+        color: #64748B;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .result-value {
+        color: #0B132B;
+        font-size: clamp(23px, 2vw, 28px);
+        line-height: 1.2;
+        font-weight: 750;
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .risk-value {
+        color: #DC2626;
+    }
+
+    .score-progress {
+        height: 6px;
+        border-radius: 20px;
+        background: #E2E8F0;
+        overflow: hidden;
+        margin-top: 13px;
+    }
+
+    .score-progress .progress-bar {
+        background: #F9D342;
+        border-radius: 20px;
+        width: 0;
+        transition: width 0.6s ease;
+    }
+
+    .score-note {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 4px 9px;
+        border-radius: 30px;
+        background: #FEF3C7;
+        color: #92400E;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .risk-badge {
+        display: inline-block;
+        margin-top: 13px;
+        padding: 5px 11px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .risk-high {
+        color: #B91C1C;
+        background: #FEE2E2;
+    }
+
+    .risk-medium {
+        color: #92400E;
+        background: #FEF3C7;
+    }
+
+    .risk-low {
+        color: #047857;
+        background: #D1FAE5;
+    }
+
+    /* Application Details */
+    .details-card {
+        margin-top: 22px;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        background: #FFFFFF;
+        box-shadow: 0 5px 18px rgba(11, 19, 43, 0.06);
+        overflow: hidden;
+    }
+
+    .details-header {
+        padding: 19px 24px;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .details-header h5 {
+        margin: 0;
+        color: #0B132B;
+        font-weight: 750;
+    }
+
+    .details-header-icon {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        color: #FFFFFF;
+        background: #0B132B;
+        font-size: 17px;
+        flex-shrink: 0;
+    }
+
+    .details-body {
+        padding: 12px 24px 22px;
+    }
+
+    .detail-column + .detail-column {
+        border-left: 1px solid #E2E8F0;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: 22px minmax(105px, 0.9fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 12px 5px;
+        min-height: 49px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-icon {
+        color: #0F766E;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .detail-label {
+        color: #64748B;
+        font-size: 13px;
+    }
+
+    .detail-value {
+        color: #0B132B;
+        font-size: 13px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 30px;
+        background: #FEE2E2;
+        color: #B91C1C;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-safe {
+        background: #D1FAE5;
+        color: #047857;
+    }
+
+    /* Action Buttons */
+    .result-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px;
+        margin-top: 16px;
+        background: #F1F5F9;
+        border-radius: 12px;
+    }
+
+    .result-actions .btn {
+        flex: 1;
+        min-width: 180px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .btn-riskwise-dark {
+        color: #FFFFFF;
+        background: #0B132B;
+        border: 1px solid #0B132B;
+    }
+
+    .btn-riskwise-dark:hover {
+        color: #FFFFFF;
+        background: #1C2541;
+    }
+
+    .btn-riskwise-teal {
+        color: #FFFFFF;
+        background: #0F9F95;
+        border: 1px solid #0F9F95;
+    }
+
+    .btn-riskwise-teal:hover {
+        color: #FFFFFF;
+        background: #0F766E;
+    }
+
+    .result-disclaimer {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 16px;
+        color: #64748B;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .result-disclaimer i {
+        color: #0F766E;
+        margin-top: 3px;
+    }
+
+    @media (max-width: 991px) {
+        .detail-column + .detail-column {
+            border-left: none;
+        }
+
+        .result-card {
+            min-height: 150px;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .result-page {
+            padding-top: 24px;
+        }
+
+        .result-heading {
+            font-size: 23px;
+        }
+
+        .result-card {
+            min-height: auto;
+        }
+
+        .result-card .card-body {
+            padding: 16px;
+        }
+
+        .result-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .result-value {
+            font-size: 24px;
+        }
+
+        .details-header {
+            padding: 17px;
+        }
+
+        .details-body {
+            padding: 8px 14px 17px;
+        }
+
+        .detail-row {
+            grid-template-columns: 20px minmax(95px, 0.9fr) minmax(0, 1fr);
+            gap: 7px;
+            padding: 11px 3px;
+        }
+
+        .result-actions {
+            padding: 12px;
+        }
+
+        .result-actions .btn {
+            width: 100%;
+            min-width: 100%;
+        }
+    }
+</style>
+
+<div class="result-page">
+    <div class="container">
+
+        <!-- Page Heading -->
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="result-icon probability-icon">
+                    <i class="bi bi-clipboard2-check"></i>
+                </div>
+
+                <div>
+                    <h2 class="result-heading mb-1">
+                        Credit Risk Prediction Result
+                    </h2>
+                    <p class="result-subtitle mb-0">
+                        Your loan application has been analyzed by RiskWise.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Three Compact Result Cards -->
+        <div class="row g-3">
+
+            <!-- Credit Score -->
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card result-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="result-icon score-icon">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+
+                            <div>
+                                <p class="result-label">Credit Score</p>
+                                <h3 class="result-value">
+                                    {{ application.prediction.credit_score }}/900
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div class="progress score-progress">
+                            <div
+                                class="progress-bar score-progress-bar"
+                                role="progressbar"
+                                data-score="{{ application.prediction.credit_score }}"
+                                aria-valuenow="{{ application.prediction.credit_score }}"
+                                aria-valuemin="0"
+                                aria-valuemax="900">
+                            </div>
+                        </div>
+
+                        <span class="score-note">
+                            <i class="bi bi-graph-down me-1"></i>
+                            {% if application.prediction.credit_score >= 780 %}
+                                Strong Score
+                            {% elif application.prediction.credit_score >= 600 %}
+                                Moderate Score
+                            {% else %}
+                                Low Score
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Level -->
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card result-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="result-icon risk-icon">
+                                <i class="bi bi-shield-exclamation"></i>
+                            </div>
+
+                            <div>
+                                <p class="result-label">Risk Level</p>
+                                <h3 class="result-value {% if application.prediction.risk_level == 'High' %}risk-value{% endif %}">
+                                    {{ application.prediction.risk_level }}
+                                </h3>
+                            </div>
+                        </div>
+
+                        <span class="risk-badge {% if application.prediction.risk_level == 'High' %}risk-high{% elif application.prediction.risk_level == 'Medium' %}risk-medium{% else %}risk-low{% endif %}">
+                            <i class="bi bi-shield-check me-1"></i>
+                            {{ application.prediction.risk_level }} Risk
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Default Probability -->
+            <div class="col-12 col-md-12 col-xl-4">
+                <div class="card result-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="result-icon probability-icon">
+                                <i class="bi bi-percent"></i>
+                            </div>
+
+                            <div>
+                                <p class="result-label">Default Probability</p>
+                                <h3 class="result-value">
+                                    {% widthratio application.prediction.default_probability 1 100 as probability_percent %}{{ probability_percent }}%
+                                </h3>
+                            </div>
+                        </div>
+
+                        <p class="result-subtitle small mt-2 mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Estimated probability of default
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Application Details -->
+        <div class="details-card">
+            <div class="details-header">
+                <div class="details-header-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+
+                <h5>Application Details</h5>
+            </div>
+
+            <div class="details-body">
+                <div class="row g-0">
+
+                    <div class="col-12 col-lg-6 detail-column pe-lg-4">
+
+                        <div class="detail-row">
+                            <i class="bi bi-person detail-icon"></i>
+                            <span class="detail-label">Applicant</span>
+                            <span class="detail-value">
+                                {{ application.full_name }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-mortarboard detail-icon"></i>
+                            <span class="detail-label">Loan Purpose</span>
+                            <span class="detail-value">
+                                {{ application.loan_type.name }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-currency-rupee detail-icon"></i>
+                            <span class="detail-label">Loan Amount</span>
+                            <span class="detail-value">
+                                ₹{{ application.loan_amount|floatformat:2 }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-cash-stack detail-icon"></i>
+                            <span class="detail-label">Annual Income</span>
+                            <span class="detail-value">
+                                ₹{{ application.annual_income|floatformat:2 }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-percent detail-icon"></i>
+                            <span class="detail-label">Interest Rate</span>
+                            <span class="detail-value">
+                                {{ application.interest_rate }}%
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <div class="col-12 col-lg-6 detail-column ps-lg-4">
+
+                        <div class="detail-row">
+                            <i class="bi bi-clipboard2-check detail-icon"></i>
+                            <span class="detail-label">Predicted Status</span>
+                            <span class="detail-value">
+                                {% if application.prediction.predicted_status == 1 %}
+                                    <span class="status-badge">Default</span>
+                                {% else %}
+                                    <span class="status-badge status-safe">
+                                        No Default
+                                    </span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-house-door detail-icon"></i>
+                            <span class="detail-label">Home Ownership</span>
+                            <span class="detail-value">
+                                {{ application.home_ownership }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-star detail-icon"></i>
+                            <span class="detail-label">Loan Grade</span>
+                            <span class="detail-value">
+                                {{ application.loan_grade }}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-briefcase detail-icon"></i>
+                            <span class="detail-label">Employment Length</span>
+                            <span class="detail-value">
+                                {{ application.employment_length }} years
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <i class="bi bi-clock-history detail-icon"></i>
+                            <span class="detail-label">Credit History</span>
+                            <span class="detail-value">
+                                {{ application.credit_history_length }} years
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="result-actions">
+                    <a href="{% url 'history' %}" class="btn btn-riskwise-dark">
+                        <i class="bi bi-clock-history me-2"></i>
+                        View History
+                    </a>
+
+                    <a href="{% url 'risk_checker' %}" class="btn btn-riskwise-teal">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        New Prediction
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".score-progress-bar").forEach(function (bar) {
+        const score = Number(bar.dataset.score) || 0;
+        const percentage = Math.min(100, Math.max(0, (score / 900) * 100));
+
+        bar.style.width = percentage + "%";
+    });
+});
+</script>
+{% endblock %}

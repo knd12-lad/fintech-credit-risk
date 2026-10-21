@@ -1,0 +1,931 @@
+
+/* =====================================================================
+   RiskWise Design System
+   Theme + Home + About + Navbar
+   Load order in base.html: Bootstrap -> style.css -> riskwise.css
+   ===================================================================== */
+
+/* ---------- 1. Design tokens ---------- */
+:root {
+    --rx-navy: #0B132B;
+    --rx-navy-2: #1C2541;
+    --rx-navy-3: #26325C;
+    --rx-teal: #14B8A6;
+    --rx-teal-dark: #0F766E;
+    --rx-teal-soft: #CCFBF1;
+    --rx-gold: #F9D342;
+    --rx-gold-dark: #EAB91A;
+    --rx-bg: #F4F6F9;
+    --rx-card: #FFFFFF;
+    --rx-text: #1E293B;
+    --rx-muted: #64748B;
+    --rx-border: #E2E8F0;
+
+    --rx-low: #16A34A;
+    --rx-medium: #F59E0B;
+    --rx-high: #EF4444;
+
+    --rx-radius: 16px;
+    --rx-shadow: 0 1px 2px rgba(11, 19, 43, 0.06),
+                 0 10px 28px rgba(11, 19, 43, 0.08);
+    --rx-shadow-lg: 0 24px 60px rgba(11, 19, 43, 0.28);
+
+    --rx-font-head: "Poppins", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --rx-font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+    /* Legacy variables */
+    --rw-navy: var(--rx-navy);
+    --rw-navy-deep: #070D1F;
+    --rw-navy-800: var(--rx-navy-2);
+    --rw-navy-900: var(--rx-navy);
+    --rw-teal: var(--rx-teal);
+    --rw-teal-dark: var(--rx-teal-dark);
+    --rw-teal-light: #5EEAD4;
+    --rw-gold: var(--rx-gold);
+    --rw-bg: var(--rx-bg);
+    --rw-text: var(--rx-text);
+    --rw-muted: var(--rx-muted);
+}
+
+/* ---------- 2. Base ---------- */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--rx-font-body);
+    background: var(--rx-bg);
+    color: var(--rx-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.rx-heading {
+    font-family: var(--rx-font-head);
+    color: #040D2A;
+    letter-spacing: -0.01em;
+}
+
+a {
+    text-decoration: none;
+}
+
+section[id] {
+    scroll-margin-top: 84px;
+}
+
+:focus-visible {
+    outline: 3px solid var(--rx-teal);
+    outline-offset: 2px;
+}
+
+/* ---------- 3. Buttons ---------- */
+.btn-gold,
+.btn-teal,
+.btn-outline-teal,
+.btn-outline-light-rx {
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.6rem 1.25rem;
+    transition: transform .15s ease,
+                box-shadow .15s ease,
+                background-color .15s ease,
+                color .15s ease;
+}
+
+.btn-gold:hover,
+.btn-teal:hover {
+    transform: translateY(-1px);
+}
+
+.btn-gold {
+    background: var(--rx-gold);
+    border: 1px solid var(--rx-gold);
+    color: var(--rx-navy);
+}
+
+.btn-gold:hover,
+.btn-gold:focus {
+    background: var(--rx-gold-dark);
+    border-color: var(--rx-gold-dark);
+    color: var(--rx-navy);
+    box-shadow: 0 8px 20px rgba(249, 211, 66, 0.35);
+}
+
+.btn-teal {
+    background: var(--rx-teal);
+    border: 1px solid var(--rx-teal);
+    color: var(--rx-navy);
+}
+
+.btn-teal:hover,
+.btn-teal:focus {
+    background: #2DD4BF;
+    border-color: #2DD4BF;
+    color: var(--rx-navy);
+    box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
+}
+
+.btn-outline-teal {
+    background: transparent;
+    border: 1.5px solid var(--rx-teal);
+    color: #CFFAF3;
+}
+
+.btn-outline-teal:hover,
+.btn-outline-teal:focus {
+    background: var(--rx-teal);
+    border-color: var(--rx-teal);
+    color: var(--rx-navy);
+}
+
+.btn-outline-light-rx {
+    background: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    color: #FFFFFF;
+}
+
+.btn-outline-light-rx:hover,
+.btn-outline-light-rx:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #FFFFFF;
+    color: #FFFFFF;
+}
+
+/* ---------- 4. Navbar ---------- */
+.rx-header {
+    background: var(--rx-navy);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    z-index: 1030;
+}
+
+.rx-navbar {
+    padding: 0.7rem 0;
+}
+
+.rx-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+}
+
+.rx-brand img {
+    display: block;
+}
+
+.rx-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.rx-brand-name {
+    font-family: var(--rx-font-head);
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+}
+
+.rx-brand-name span {
+    color: var(--rx-teal);
+}
+
+.rx-brand-text small {
+    font-size: 0.68rem;
+    color: #94A3B8;
+    margin-top: 2px;
+    letter-spacing: 0.01em;
+}
+
+.rx-navbar .nav-link {
+    position: relative;
+    color: #CBD5E1;
+    font-weight: 500;
+    padding: 0.55rem 0.9rem !important;
+}
+
+.rx-navbar .nav-link:hover {
+    color: #FFFFFF;
+}
+
+.rx-navbar .nav-link.active {
+    color: #FFFFFF;
+}
+
+.rx-navbar .nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0.9rem;
+    right: 0.9rem;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--rx-teal);
+}
+
+.rx-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rx-teal);
+    color: var(--rx-navy);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.rx-user-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #E2E8F0;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem 0.25rem 0.3rem;
+}
+
+.rx-user-btn:hover,
+.rx-user-btn.show {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Dropdown arrow rotates when opened */
+.rx-user-btn.dropdown-toggle::after {
+    margin-left: 2px;
+    transition: transform 0.2s ease;
+}
+
+.rx-user-btn.dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+.rx-dropdown {
+    border: 1px solid var(--rx-border);
+    border-radius: 12px;
+    box-shadow: var(--rx-shadow);
+    padding: 6px;
+}
+
+.rx-dropdown .dropdown-item {
+    border-radius: 8px;
+    font-size: 0.92rem;
+    padding: 0.45rem 0.75rem;
+}
+
+.rx-dropdown .dropdown-item:active {
+    background: var(--rx-teal);
+    color: var(--rx-navy);
+}
+
+/* ---------- 5. Home Hero ---------- */
+.rx-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 84px 0 132px;
+    color: #FFFFFF;
+    background:
+        radial-gradient(900px 420px at 85% 0%,
+            rgba(20, 184, 166, 0.24), transparent 60%),
+        radial-gradient(520px 300px at 0% 100%,
+            rgba(249, 211, 66, 0.09), transparent 60%),
+        linear-gradient(135deg, var(--rx-navy) 0%, var(--rx-navy-2) 100%);
+}
+
+.rx-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+    pointer-events: none;
+}
+
+.rx-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.rx-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 184, 166, 0.45);
+    background: rgba(20, 184, 166, 0.12);
+    color: #99F6E4;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.rx-chip i {
+    color: var(--rx-teal);
+}
+
+.rx-hero-title {
+    font-family: var(--rx-font-head);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 4.6vw, 3.5rem);
+    line-height: 1.12;
+    margin: 1.1rem 0 1rem;
+}
+
+.rx-hero-title .rx-gold {
+    color: var(--rx-gold);
+}
+
+.rx-hero-text {
+    color: #CBD5E1;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    max-width: 34rem;
+}
+
+.rx-trust {
+    list-style: none;
+    padding: 0;
+    margin: 1.6rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    color: #94A3B8;
+    font-size: 0.9rem;
+}
+
+.rx-trust i {
+    color: var(--rx-teal);
+    margin-right: 6px;
+}
+
+/* Home hero credit-score gauge */
+.rx-gauge-card {
+    max-width: 440px;
+    margin-inline: auto;
+    padding: 26px 26px 22px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: var(--rx-shadow-lg);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.rx-gauge-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #CBD5E1;
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+}
+
+.rx-gauge-top .rx-live {
+    color: var(--rx-teal);
+    font-weight: 600;
+}
+
+.rx-gauge {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.rx-gauge-score {
+    font-family: var(--rx-font-head);
+    font-weight: 700;
+    font-size: 44px;
+    fill: #FFFFFF;
+}
+
+.rx-gauge-label {
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    fill: #94A3B8;
+}
+
+.rx-gauge-tick {
+    font-size: 11px;
+    fill: #94A3B8;
+}
+
+.rx-needle {
+    transform-origin: 160px 160px;
+    transform: rotate(158.4deg);
+    animation: rx-sweep 1.5s cubic-bezier(.2, .8, .2, 1) .3s both;
+}
+
+@keyframes rx-sweep {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(158.4deg); }
+}
+
+.rx-gauge-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.rx-meta-box {
+    background: rgba(11, 19, 43, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.rx-meta-box small {
+    display: block;
+    color: #94A3B8;
+    font-size: 0.74rem;
+    margin-bottom: 4px;
+}
+
+.rx-meta-box strong {
+    font-family: var(--rx-font-head);
+    font-size: 1.35rem;
+    color: #FFFFFF;
+}
+
+.rx-risk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #FFFFFF;
+}
+
+.rx-risk-pill.low {
+    background: var(--rx-low);
+}
+
+.rx-risk-pill.medium {
+    background: var(--rx-medium);
+    color: #1E293B;
+}
+
+.rx-risk-pill.high {
+    background: var(--rx-high);
+}
+
+.rx-gauge-note {
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.74rem;
+    margin: 12px 0 0;
+}
+
+/* ---------- 6. Home Stats ---------- */
+.rx-stats-wrap {
+    position: relative;
+    z-index: 2;
+    margin-top: -68px;
+}
+
+.rx-stats {
+    background: var(--rx-card);
+    border-radius: 20px;
+    box-shadow: var(--rx-shadow);
+    border: 1px solid var(--rx-border);
+    padding: 26px 12px;
+}
+
+.rx-stat {
+    text-align: center;
+    padding: 6px 12px;
+}
+
+.rx-stat strong {
+    display: block;
+    font-family: var(--rx-font-head);
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--rx-navy);
+    line-height: 1.2;
+}
+
+.rx-stat span {
+    font-size: 0.86rem;
+    color: var(--rx-muted);
+}
+
+@media (min-width: 768px) {
+    .rx-stat + .rx-stat {
+        border-left: 1px solid var(--rx-border);
+    }
+}
+
+/* ---------- 7. Home Sections ---------- */
+.rx-section {
+    padding-top: 84px;
+    padding-bottom: 8px;
+}
+
+.rx-label {
+    color: var(--rx-teal-dark);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.rx-section-title {
+    font-family: var(--rx-font-head);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    margin: 0.4rem 0 0.6rem;
+}
+
+.rx-section-sub {
+    color: var(--rx-muted);
+    max-width: 40rem;
+    margin-inline: auto;
+}
+
+/* Feature cards */
+.rx-feature {
+    height: 100%;
+    background: var(--rx-card);
+    border: 1px solid var(--rx-border);
+    border-radius: var(--rx-radius);
+    padding: 26px 22px;
+    transition: transform .2s ease,
+                box-shadow .2s ease,
+                border-color .2s ease;
+}
+
+.rx-feature:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--rx-shadow);
+    border-color: rgba(20, 184, 166, 0.5);
+}
+
+.rx-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--rx-teal-dark);
+    background: var(--rx-teal-soft);
+}
+
+.rx-icon.gold {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.rx-icon.navy {
+    background: #E0E7FF;
+    color: var(--rx-navy-3);
+}
+
+.rx-icon.green {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.rx-feature h3 {
+    font-size: 1.08rem;
+    font-weight: 600;
+    margin: 1.1rem 0 0.4rem;
+}
+
+.rx-feature p {
+    color: var(--rx-muted);
+    font-size: 0.93rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* How it works */
+.rx-steps {
+    position: relative;
+}
+
+.rx-step {
+    position: relative;
+    text-align: center;
+    padding: 0 14px;
+}
+
+.rx-step-num {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    font-size: 1.6rem;
+    color: var(--rx-teal);
+    background: var(--rx-navy);
+    border: 3px solid var(--rx-gold);
+    box-shadow: 0 8px 20px rgba(11, 19, 43, 0.22);
+}
+
+.rx-step-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--rx-gold);
+    color: var(--rx-navy);
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rx-step h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.rx-step p {
+    color: var(--rx-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .rx-steps::before {
+        content: "";
+        position: absolute;
+        top: 32px;
+        left: 12.5%;
+        right: 12.5%;
+        border-top: 2px dashed #CBD5E1;
+    }
+}
+
+/* Technology */
+.rx-tech {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.rx-tech-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.65rem 1.1rem;
+    background: var(--rx-card);
+    border: 1px solid var(--rx-border);
+    border-radius: 12px;
+    font-weight: 500;
+    color: var(--rx-navy);
+    box-shadow: 0 1px 2px rgba(11, 19, 43, 0.04);
+}
+
+.rx-tech-item i {
+    font-size: 1.2rem;
+    color: var(--rx-teal-dark);
+}
+
+/* CTA band */
+.rx-cta {
+    border-radius: 24px;
+    padding: 40px 36px;
+    color: #FFFFFF;
+    background:
+        radial-gradient(500px 220px at 100% 0%,
+            rgba(20, 184, 166, 0.3), transparent 60%),
+        linear-gradient(135deg, var(--rx-navy), var(--rx-navy-2));
+    box-shadow: var(--rx-shadow);
+}
+
+.rx-cta h2 {
+    color: #FFFFFF;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.rx-cta p {
+    color: #CBD5E1;
+    margin: 0;
+}
+
+/* Disclaimer */
+.rx-disclaimer {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #78350F;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.rx-disclaimer i {
+    font-size: 1.2rem;
+    color: #D97706;
+    margin-top: 2px;
+}
+
+/* ---------- 8. About Page ---------- */
+
+/* Dark About hero area */
+.about-hero {
+    color: #E2E8F0;
+    background: var(--rx-navy);
+}
+
+/* Make About page heading readable on navy */
+.about-hero h1,
+.about-hero .rx-heading {
+    color: #F1F5F9 !important;
+}
+
+/* Gold emphasis such as "Lower Risk." */
+.about-hero h1 span,
+.about-hero h1 .rx-gold,
+.about-hero .rx-gold {
+    color: var(--rx-gold) !important;
+}
+
+/* About page card */
+.about-hero .card,
+.about-hero .about-card {
+    background: #1C2942;
+    border-color: #526580;
+}
+
+/* Credit Risk Intelligence heading */
+.about-hero h2,
+.about-hero h3,
+.about-hero .card-title,
+.about-hero .about-card-title {
+    color: #F1F5F9 !important;
+}
+
+/* About page paragraph text */
+.about-hero p,
+.about-hero .about-description {
+    color: #CBD5E1;
+}
+
+/* ---------- 9. Credit Risk Boxes ---------- */
+
+/*
+   Use these classes on the corresponding existing HTML elements:
+   .risk-report-card
+   .credit-intelligence-card
+*/
+
+.risk-report-card,
+.credit-intelligence-card {
+    border: 4px solid #526580 !important;
+    box-sizing: border-box;
+}
+
+/* Report box heading and labels */
+.risk-report-card h2,
+.risk-report-card h3,
+.risk-report-card .card-title,
+.credit-intelligence-card h2,
+.credit-intelligence-card h3,
+.credit-intelligence-card .card-title {
+    color: #F1F5F9 !important;
+}
+
+/* ---------- 10. Footer ---------- */
+.rx-footer {
+    margin-top: 72px;
+    background: #070D1F;
+    color: #94A3B8;
+    font-size: 0.92rem;
+}
+
+.rx-footer h4 {
+    font-family: var(--rx-font-head);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    margin-bottom: 1rem;
+}
+
+.rx-footer a {
+    color: #94A3B8;
+}
+
+.rx-footer a:hover {
+    color: var(--rx-gold);
+}
+
+.rx-footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rx-footer li {
+    margin-bottom: 0.55rem;
+}
+
+.rx-footer-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rx-footer-pills span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #CBD5E1;
+    font-size: 0.82rem;
+}
+
+.rx-footer-pills i {
+    color: var(--rx-teal);
+}
+
+.rx-footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 36px;
+    padding: 18px 0;
+    font-size: 0.85rem;
+}
+
+/* ---------- 11. Responsive + Motion ---------- */
+@media (max-width: 991.98px) {
+    .rx-hero {
+        padding: 56px 0 120px;
+    }
+
+    .rx-navbar .navbar-collapse {
+        padding: 12px 0 8px;
+    }
+
+    .rx-navbar .nav-link.active::after {
+        display: none;
+    }
+
+    .rx-navbar .nav-link.active {
+        color: var(--rx-teal);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .rx-cta {
+        padding: 28px 22px;
+    }
+
+    .rx-stat strong {
+        font-size: 1.55rem;
+    }
+
+    .rx-gauge-card {
+        padding: 20px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .rx-needle {
+        animation: none;
+    }
+
+    .rx-feature,
+    .btn-gold,
+    .btn-teal {
+        transition: none;
+    }
+}

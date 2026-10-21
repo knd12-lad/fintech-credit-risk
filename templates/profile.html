@@ -1,0 +1,356 @@
+
+{% extends "base.html" %}
+
+{% block title %}My Profile | RiskWise{% endblock %}
+
+{% block content %}
+
+<style>
+  .profile-page {
+    background: #f4f6f9;
+    min-height: 80vh;
+    padding: 42px 0 60px;
+  }
+
+  .profile-heading {
+    color: #0b132b;
+    font-weight: 800;
+  }
+
+  .profile-subtitle {
+    color: #64748b;
+  }
+
+  .profile-card {
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 12px 35px rgba(11, 19, 43, 0.06);
+    height: 100%;
+  }
+
+  .profile-sidebar {
+    background: #0b132b;
+    color: #fff;
+    border-radius: 18px;
+    padding: 30px;
+    height: 100%;
+  }
+
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    background: rgba(20, 184, 166, 0.17);
+    border: 2px solid #14b8a6;
+    color: #2dd4bf;
+    font-size: 34px;
+    font-weight: 800;
+  }
+
+  .profile-email {
+    color: #cbd5e1;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+  }
+
+  .profile-role {
+    display: inline-block;
+    background: rgba(249, 211, 66, 0.15);
+    color: #f9d342;
+    border: 1px solid rgba(249, 211, 66, 0.35);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 12px;
+  }
+
+  .profile-stat {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    padding-top: 17px;
+    margin-top: 22px;
+  }
+
+  .profile-stat-label {
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+
+  .profile-stat-value {
+    color: #fff;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-detail-icon,
+  .security-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: #e6fffb;
+    color: #0f766e;
+    font-size: 19px;
+  }
+
+  .profile-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    background: #14b8a6;
+    color: #062b35;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .profile-action:hover {
+    background: #0fa594;
+    color: #062b35;
+    transform: translateY(-1px);
+  }
+
+  .security-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    color: #0b132b;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .security-link:hover {
+    border-color: #14b8a6;
+    background: #f0fdfa;
+    color: #0b132b;
+  }
+
+  .profile-action:focus-visible,
+  .security-link:focus-visible {
+    outline: 3px solid #f9d342;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 767px) {
+    .profile-page {
+      padding: 28px 0 40px;
+    }
+
+    .profile-card,
+    .profile-sidebar {
+      padding: 22px;
+    }
+  }
+</style>
+
+<section class="profile-page">
+  <div class="container">
+
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+      <div>
+        <p
+          class="text-uppercase small fw-bold mb-2"
+          style="color: #0f9f91; letter-spacing: 0.12em;"
+        >
+          Your account
+        </p>
+
+        <h1 class="profile-heading mb-2">My Profile</h1>
+
+        <p class="profile-subtitle mb-0">
+          View your RiskWise account information and security settings.
+        </p>
+      </div>
+
+      <a class="profile-action" href="{% url 'edit_profile' %}">
+        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+        Edit Profile
+      </a>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+      <div class="mb-4" aria-live="polite">
+        {% for message in messages %}
+          <div
+            class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} alert-dismissible fade show"
+            role="alert"
+          >
+            {{ message }}
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+      <!-- Profile Sidebar -->
+      <div class="col-lg-4">
+        <section class="profile-sidebar">
+
+          <div class="text-center">
+            <div class="profile-avatar">
+              {{ request.user.full_name|default:request.user.email|first|upper }}
+            </div>
+
+            <h2 class="h4 fw-bold mb-2">
+              {{ request.user.full_name|default:"User" }}
+            </h2>
+
+            <div class="profile-email">
+              {{ request.user.email }}
+            </div>
+
+            <span class="profile-role">
+              {{ request.user.get_role_display|default:"User" }}
+            </span>
+          </div>
+
+          <div class="profile-stat">
+            <div class="profile-stat-label">Account created</div>
+
+            <div class="profile-stat-value mt-1">
+              {{ request.user.date_joined|date:"d M Y" }}
+            </div>
+          </div>
+
+          <div class="profile-stat">
+            <div class="profile-stat-label">Account status</div>
+
+            <div class="profile-stat-value mt-1">
+              {% if request.user.is_active %}
+                <i
+                  class="bi bi-check-circle-fill text-success me-1"
+                  aria-hidden="true"
+                ></i>
+                Active
+              {% else %}
+                <i
+                  class="bi bi-exclamation-circle-fill text-warning me-1"
+                  aria-hidden="true"
+                ></i>
+                Inactive
+              {% endif %}
+            </div>
+          </div>
+
+        </section>
+      </div>
+
+      <!-- Profile Details -->
+      <div class="col-lg-8">
+        <section class="profile-card">
+
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="profile-detail-icon">
+              <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            </div>
+
+            <div>
+              <h2 class="h4 profile-heading mb-1">
+                Personal Information
+              </h2>
+
+              <p class="text-secondary mb-0">
+                Your saved account details.
+              </p>
+            </div>
+          </div>
+
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <div class="small text-secondary mb-1">Full Name</div>
+
+              <div class="fw-semibold text-break">
+                {{ request.user.full_name|default:"Not provided" }}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="small text-secondary mb-1">Email Address</div>
+
+              <div class="fw-semibold text-break">
+                {{ request.user.email }}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="small text-secondary mb-1">Account Role</div>
+
+              <div class="fw-semibold">
+                {{ request.user.get_role_display|default:"User" }}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="small text-secondary mb-1">Account Status</div>
+
+              <div class="fw-semibold">
+                {% if request.user.is_active %}
+                  Active
+                {% else %}
+                  Inactive
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Account Security -->
+          <h2 class="h5 profile-heading mb-3">
+            Account Security
+          </h2>
+
+          <a href="{% url 'password_change' %}" class="security-link">
+
+            <div class="security-icon">
+              <i class="bi bi-shield-lock" aria-hidden="true"></i>
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="fw-bold">Change Password</div>
+
+              <small class="text-secondary">
+                Update your account password securely.
+              </small>
+            </div>
+
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+
+          </a>
+
+        </section>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,51 @@
+from django.contrib.auth import views as auth_views
+from django.urls import path
+
+from . import views
+from .forms import EmailLoginForm
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    
+    path("about/", views.about_view, name="about"),
+    path("contact/", views.contact_view, name="contact"),
+
+    # Profile
+    path("profile/", views.profile_view, name="profile"),
+    path(
+        "profile/edit/",
+        views.edit_profile_view,
+        name="edit_profile",
+    ),
+
+    # Change Password — unchanged
+    path(
+        "profile/change-password/",
+        views.RiskWisePasswordChangeView.as_view(),
+        name="password_change",
+    ),
+
+    # Risk Checker
+    path("risk-checker/", views.risk_checker_view, name="risk_checker"),
+    path("history/", views.history_view, name="history"),
+    path(
+        "result/<int:application_id>/",
+        views.result_view,
+        name="result",
+    ),
+
+    # Authentication
+    path("register/", views.register_view, name="register"),
+    path(
+        "login/",
+        auth_views.LoginView.as_view(
+            template_name="login.html",
+            authentication_form=EmailLoginForm,
+            redirect_authenticated_user=True,
+        ),
+        name="login",
+    ),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+
+    
+]

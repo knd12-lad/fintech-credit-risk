@@ -1,0 +1,60 @@
+{% load static %}
+{% url 'risk_checker' as risk_url %}
+{% url 'about' as about_url %}
+{% url 'contact' as contact_url %}
+{% url 'history' as history_url %}
+
+<footer class="rx-footer" id="site-footer">
+    <div class="container pt-5">
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+                <a class="d-flex align-items-center gap-2 mb-3" href="{% url 'home' %}">
+                    <img src="{% static 'images/logo.svg' %}" alt="" width="40" height="40">
+                    <span class="rx-brand-name">Risk<span>Wise</span></span>
+                </a>
+                <p class="mb-0" style="max-width: 22rem;">
+                    AI-powered credit risk analysis for smarter lending decisions.
+                    Build a safer and stronger financial future.
+                </p>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% if about_url %}{{ about_url }}{% else %}{% url 'home' %}#how-it-works{% endif %}">About</a></li>
+                    {% if risk_url %}<li><a href="{{ risk_url }}">Risk Checker</a></li>{% endif %}
+                    {% if history_url and user.is_authenticated %}<li><a href="{{ history_url }}">History</a></li>{% endif %}
+                    {% if contact_url %}<li><a href="{{ contact_url }}">Contact</a></li>{% endif %}
+                    {% if not user.is_authenticated %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="col-6 col-lg-5">
+                <h4>Tech Stack</h4>
+                <div class="rx-footer-pills">
+                    <span><i class="bi bi-filetype-py"></i> Python</span>
+                    <span><i class="bi bi-server"></i> Django</span>
+                    <span><i class="bi bi-database"></i> MySQL</span>
+                    <span><i class="bi bi-cpu"></i> Scikit-learn</span>
+                    <span><i class="bi bi-bar-chart-line"></i> Power BI</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="rx-footer-bottom d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; {% now "Y" %} RiskWise. FinTech Credit Risk Scoring &amp; Loan Default Predictor.</span>
+            <span>
+                Developed by Kinjal
+                <span class="mx-2">|</span>
+                <a href="https://github.com/knd12-lad/fintech-credit-risk" target="_blank" rel="noopener">
+                    <i class="bi bi-github"></i> knd12-lad/fintech-credit-risk
+                </a>
+            </span>
+        </div>
+    </div>
+</footer>

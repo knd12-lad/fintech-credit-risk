@@ -1,0 +1,155 @@
+{% extends "base.html" %} 
+
+{% block title %}Edit Profile | RiskWise{% endblock %}
+
+{% block content %}
+<style>
+  .edit-profile-page {
+    background: #f4f6f9;
+    min-height: 80vh;
+    padding: 42px 0 60px;
+  }
+  .edit-profile-card {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 18px;
+    padding: clamp(22px, 4vw, 38px);
+    box-shadow: 0 12px 35px rgba(11, 19, 43, 0.06);
+  }
+  .edit-profile-title {
+    color: #0b132b;
+    font-weight: 800;
+  }
+  .edit-profile-subtitle {
+    color: #64748b;
+  }
+  .edit-profile-avatar {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #d9f7f2;
+    color: #0f766e;
+    font-size: 26px;
+    font-weight: 800;
+    border: 2px solid #99f6e4;
+  }
+  .edit-profile-page .form-label {
+    font-weight: 650;
+    color: #0b132b;
+  }
+  .edit-profile-page .form-control {
+    padding: 12px 14px;
+    border-color: #dce3eb;
+    border-radius: 9px;
+  }
+  .edit-profile-page .form-control:focus {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+  }
+  .edit-profile-page .form-text {
+    color: #64748b;
+  }
+  .edit-save {
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    background: #14b8a6;
+    color: #062b35;
+    font-weight: 700;
+  }
+  .edit-save:hover {
+    background: #0fa594;
+  }
+  .edit-cancel {
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    padding: 11px 20px;
+    color: #0b132b;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .edit-cancel:hover {
+    background: #f8fafc;
+    color: #0b132b;
+  }
+</style>
+<section class="edit-profile-page">
+  <div class="container">
+    <div class="edit-profile-card">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="edit-profile-avatar">
+          {{ request.user.full_name|default:request.user.email|first|upper }}
+        </div>
+        <div>
+          <p
+            class="text-uppercase small fw-bold mb-1"
+            style="color: #0f9f91; letter-spacing: 0.1em"
+          >
+            Account settings
+          </p>
+          <h1 class="h2 edit-profile-title mb-1">Edit Profile</h1>
+          <p class="edit-profile-subtitle mb-0">
+            Update your personal information below.
+          </p>
+        </div>
+      </div>
+
+      {% if messages %} {% for message in messages %}
+      <div
+        class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}"
+        role="alert"
+      >
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %}
+
+      <form method="post">
+        {% csrf_token %} {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %} {% for field in form %}
+        <div class="mb-4">
+          <label for="{{ field.id_for_label }}" class="form-label"
+            >{{ field.label }} <span class="text-danger">*</span></label
+          >
+          {{ field }} {% if field.help_text %}
+          <div class="form-text mt-2">{{ field.help_text }}</div>
+          {% endif %} {% for error in field.errors %}
+          <div class="text-danger small mt-2">{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        <div class="d-flex flex-wrap gap-3 pt-2">
+          <button type="submit" class="edit-save">
+            <i class="bi bi-check2-circle me-1" aria-hidden="true"></i> Save
+            Changes
+          </button>
+          <a href="{% url 'profile' %}" class="edit-cancel">Cancel</a>
+        </div>
+      </form>
+
+      <div
+        class="rounded-3 p-3 mt-4"
+        style="background: #f8fafc; border: 1px solid #e2e8f0"
+      >
+        <div class="d-flex gap-2 align-items-start">
+          <i
+            class="bi bi-shield-lock mt-1"
+            style="color: #0f766e"
+            aria-hidden="true"
+          ></i>
+          <p class="small text-secondary mb-0">
+            Account role, status and creation date cannot be edited here. To
+            change your password, use the separate Change Password option on My
+            Profile.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

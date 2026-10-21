@@ -1,0 +1,182 @@
+{# RW-D6 #}
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a> &rsaquo; Analytics
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="rw-dash">
+
+    <!-- KPIs -->
+    <div class="rw-kpis">
+        <div class="rw-kpi">
+            <span class="rw-kpi-icon" style="background:#0E9F9F"><i class="bi bi-database"></i></span>
+            <div><div class="rw-kpi-value">{% if insights %}{{ insights.rows }}{% else %}-{% endif %}</div><div class="rw-kpi-label">Training loan records</div></div>
+        </div>
+        <div class="rw-kpi">
+            <span class="rw-kpi-icon" style="background:#EF4444"><i class="bi bi-exclamation-octagon"></i></span>
+            <div><div class="rw-kpi-value">{% if insights %}{{ insights.overall }}%{% else %}-{% endif %}</div><div class="rw-kpi-label">Default rate in training data</div></div>
+        </div>
+        <div class="rw-kpi">
+            <span class="rw-kpi-icon" style="background:#3B82F6"><i class="bi bi-trophy"></i></span>
+            <div><div class="rw-kpi-value">{% if best %}{{ best.roc_auc|floatformat:3 }}{% else %}-{% endif %}</div><div class="rw-kpi-label">Best model ROC-AUC</div></div>
+        </div>
+        <div class="rw-kpi">
+            <span class="rw-kpi-icon" style="background:#8B5CF6"><i class="bi bi-graph-up-arrow"></i></span>
+            <div><div class="rw-kpi-value">{{ total_live }}</div><div class="rw-kpi-label">Predictions on the website</div></div>
+        </div>
+    </div>
+
+    <!-- Model comparison -->
+    <div class="rw-panel">
+        <h2>Model comparison (test data)</h2>
+        {% if models %}
+        <div class="rw-table-wrap">
+            <table class="rw-table">
+                <thead>
+                    <tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in models %}
+                    <tr class="{% if m.best %}rw-best{% endif %}">
+                        <td>{{ m.name }}{% if m.best %} <span class="rw-badge rw-b-low">Best</span>{% endif %}</td>
+                        <td>{{ m.accuracy|floatformat:3 }}</td>
+                        <td>{{ m.precision|floatformat:3 }}</td>
+                        <td>{{ m.recall|floatformat:3 }}</td>
+                        <td>{{ m.f1|floatformat:3 }}</td>
+                        <td>{{ m.roc_auc|floatformat:3 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="rw-note">model_comparison.csv not found in ml/saved_models. Run the last cell of notebook 04.</p>
+        {% endif %}
+    </div>
+
+    <!-- Model charts (Phase 5) -->
+    <div class="rw-panel">
+        <h2>Model evaluation charts</h2>
+        <div class="rw-grid rw-grid-3">
+            <figure class="rw-fig"><img src="{% static 'images/ml/01_confusion_matrices.png' %}" alt="Confusion matrices" onerror="this.closest('figure').style.display='none'"><figcaption>Confusion matrices</figcaption></figure>
+            <figure class="rw-fig"><img src="{% static 'images/ml/02_roc_curves.png' %}" alt="ROC curves" onerror="this.closest('figure').style.display='none'"><figcaption>ROC curves</figcaption></figure>
+            <figure class="rw-fig"><img src="{% static 'images/ml/03_feature_importance.png' %}" alt="Feature importance" onerror="this.closest('figure').style.display='none'"><figcaption>Top 10 features (Random Forest)</figcaption></figure>
+        </div>
+    </div>
+
+    <!-- Training data insights -->
+    <div class="rw-panel">
+        <h2>Default rate in training data</h2>
+        {% if insights %}
+        <div class="rw-grid rw-grid-2">
+            <div><div class="rw-sub">By loan grade</div><div class="rw-chart-box"><canvas id="gradeChart"></canvas></div></div>
+            <div><div class="rw-sub">By loan type</div><div class="rw-chart-box"><canvas id="intentChart"></canvas></div></div>
+            <div><div class="rw-sub">By home ownership</div><div class="rw-chart-box"><canvas id="homeChart"></canvas></div></div>
+            <div><div class="rw-sub">By previous default on file</div><div class="rw-chart-box"><canvas id="prevChart"></canvas></div></div>
+        </div>
+        {% else %}
+        <p class="rw-note">dataset/loan_data_cleaned.csv not found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Live data -->
+    <div class="rw-panel">
+        <h2>Live data from website predictions</h2>
+        {% if total_live %}
+        <div class="rw-grid rw-grid-2">
+            <div><div class="rw-sub">Average credit score by loan grade</div><div class="rw-chart-box"><canvas id="liveGradeChart"></canvas></div></div>
+            <div><div class="rw-sub">Risk level by loan type</div><div class="rw-chart-box"><canvas id="liveTypeChart"></canvas></div></div>
+        </div>
+        {% else %}
+        <p class="rw-note">No predictions yet. These charts fill up after users use the Risk Checker.</p>
+        {% endif %}
+    </div>
+
+    <!-- EDA charts (Phase 3) -->
+    <div class="rw-panel">
+        <h2>Exploratory data analysis (EDA)</h2>
+        <div class="rw-grid rw-grid-2">
+            <figure class="rw-fig"><img src="{% static 'images/eda/01_target_distribution.png' %}" alt="Target distribution" onerror="this.closest('figure').style.display='none'"><figcaption>Default vs no default</figcaption></figure>
+            <figure class="rw-fig"><img src="{% static 'images/eda/05_correlation_heatmap.png' %}" alt="Correlation heatmap" onerror="this.closest('figure').style.display='none'"><figcaption>Correlation heatmap</figcaption></figure>
+            <figure class="rw-fig"><img src="{% static 'images/eda/03_default_rate_by_category.png' %}" alt="Default rate by category" onerror="this.closest('figure').style.display='none'"><figcaption>Default rate by category</figcaption></figure>
+            <figure class="rw-fig"><img src="{% static 'images/eda/04_numeric_vs_default.png' %}" alt="Numeric features vs default" onerror="this.closest('figure').style.display='none'"><figcaption>Numeric features vs default</figcaption></figure>
+            <figure class="rw-fig rw-fig-wide"><img src="{% static 'images/eda/02_numeric_distributions.png' %}" alt="Numeric distributions" onerror="this.closest('figure').style.display='none'"><figcaption>Numeric feature distributions</figcaption></figure>
+        </div>
+    </div>
+</div>
+
+{{ chart_payload|json_script:"rw-analytics-data" }}
+<script>
+(function () {
+    var d = JSON.parse(document.getElementById("rw-analytics-data").textContent);
+    var style = getComputedStyle(document.body);
+    Chart.defaults.color = style.color;
+    Chart.defaults.font.family = style.fontFamily;
+
+    var GRADE_COLORS = ["#10B981", "#34D399", "#A3E635", "#F59E0B", "#F97316", "#EF4444", "#B91C1C"];
+
+    function rateChart(id, data, colors) {
+        var el = document.getElementById(id);
+        if (!el || !data) { return; }
+        new Chart(el, {
+            type: "bar",
+            data: { labels: data.labels, datasets: [{ data: data.values, backgroundColor: colors || "#0E9F9F", borderRadius: 6 }] },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function (c) { return c.parsed.y + "%"; } } }
+                },
+                scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function (v) { return v + "%"; } } } }
+            }
+        });
+    }
+
+    if (d.insights) {
+        rateChart("gradeChart", d.insights.grade, GRADE_COLORS);
+        rateChart("intentChart", d.insights.intent);
+        rateChart("homeChart", d.insights.home);
+        rateChart("prevChart", d.insights.previous, ["#10B981", "#EF4444"]);
+    }
+
+    if (d.has_live) {
+        new Chart(document.getElementById("liveGradeChart"), {
+            type: "bar",
+            data: { labels: d.live_grade.labels, datasets: [{ data: d.live_grade.values, backgroundColor: "#3B82F6", borderRadius: 6 }] },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { min: 300, max: 900 } }
+            }
+        });
+
+        new Chart(document.getElementById("liveTypeChart"), {
+            type: "bar",
+            data: {
+                labels: d.live_type.labels,
+                datasets: [
+                    { label: "Low", data: d.live_type.low, backgroundColor: "#10B981" },
+                    { label: "Medium", data: d.live_type.medium, backgroundColor: "#F59E0B" },
+                    { label: "High", data: d.live_type.high, backgroundColor: "#EF4444" }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: "bottom" } },
+                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

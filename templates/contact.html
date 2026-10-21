@@ -1,0 +1,263 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Us | RiskWise{% endblock %}
+
+{% block content %}
+
+<style>
+    .contact-page {
+        min-height: calc(100vh - 150px);
+        padding: 42px 16px 50px;
+        background: #F4F6F9;
+    }
+
+    .contact-wrapper {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .contact-heading {
+        color: #0B132B;
+        font-size: clamp(30px, 4vw, 40px);
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 10px;
+        letter-spacing: -0.7px;
+    }
+
+    .contact-subtitle {
+        color: #64748B;
+        font-size: 15px;
+        line-height: 1.7;
+        text-align: center;
+        max-width: 530px;
+        margin: 0 auto 28px;
+    }
+
+    .contact-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 28px rgba(11, 19, 43, 0.07);
+    }
+
+    .contact-card-title {
+        color: #0B132B;
+        font-size: 21px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .contact-card-subtitle {
+        color: #64748B;
+        font-size: 13px;
+        margin-bottom: 24px;
+    }
+
+    .contact-form .form-label {
+        color: #26325C;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+    .contact-form .form-control {
+        min-height: 46px;
+        border: 1px solid #DCE3EC;
+        border-radius: 9px;
+        padding: 11px 13px;
+        font-size: 14px;
+        color: #1E293B;
+        background: #FFFFFF;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .contact-form textarea.form-control {
+        min-height: 125px;
+        resize: vertical;
+    }
+
+    .contact-form .form-control:focus {
+        border-color: #14B8A6;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
+        outline: none;
+    }
+
+    .contact-submit {
+        width: 100%;
+        min-height: 47px;
+        border: none;
+        border-radius: 9px;
+        background: #0B132B;
+        color: #FFFFFF;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 8px;
+        transition: background 0.2s, transform 0.2s;
+    }
+
+    .contact-submit:hover {
+        background: #14B8A6;
+        color: #0B132B;
+        transform: translateY(-1px);
+    }
+
+    .contact-submit i {
+        margin-right: 7px;
+    }
+
+    .contact-footer-note {
+        text-align: center;
+        color: #64748B;
+        font-size: 12px;
+        margin-top: 18px;
+        margin-bottom: 0;
+    }
+
+    .contact-alert {
+        border-radius: 9px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 576px) {
+        .contact-page {
+            padding: 30px 14px 36px;
+        }
+
+        .contact-card {
+            padding: 22px 18px;
+        }
+
+        .contact-heading {
+            font-size: 30px;
+        }
+
+        .contact-subtitle {
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+    }
+</style>
+
+<section class="contact-page">
+    <div class="contact-wrapper">
+
+        <h1 class="contact-heading">Contact Us</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show contact-alert"
+                     role="alert">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="contact-card">
+
+            <h2 class="contact-card-title">Send Us a Message</h2>
+
+            <p class="contact-card-subtitle">
+                Fill in the details below and we'll get back to you.
+            </p>
+
+            <form method="POST"
+                  action="{% url 'contact' %}"
+                  class="contact-form">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="contact-name" class="form-label">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        id="contact-name"
+                        class="form-control"
+                        placeholder="Enter your full name"
+                        maxlength="100"
+                        autocomplete="name"
+                        required
+                        value="{{ request.POST.name|default:'' }}"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="contact-email" class="form-label">
+                        Email Address
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        id="contact-email"
+                        class="form-control"
+                        placeholder="Enter your email address"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                        value="{{ request.POST.email|default:'' }}"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="contact-subject" class="form-label">
+                        Subject
+                    </label>
+
+                    <input
+                        type="text"
+                        name="subject"
+                        id="contact-subject"
+                        class="form-control"
+                        placeholder="What is your message about?"
+                        maxlength="150"
+                        required
+                        value="{{ request.POST.subject|default:'' }}"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label for="contact-message" class="form-label">
+                        Message
+                    </label>
+
+                    <textarea
+                        name="message"
+                        id="contact-message"
+                        class="form-control"
+                        placeholder="Write your message here..."
+                        rows="5"
+                        maxlength="2000"
+                        required
+                    >{{ request.POST.message|default:'' }}</textarea>
+                </div>
+
+                <button type="submit" class="contact-submit">
+                    <i class="bi bi-send"></i>
+                    Send Message
+                </button>
+
+            </form>
+
+        </div>
+
+        <p class="contact-footer-note">
+            <i class="bi bi-shield-check"></i>
+            Your information will be handled with care.
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

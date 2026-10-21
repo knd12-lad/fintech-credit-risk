@@ -1,0 +1,113 @@
+/* RW-D1 */
+:root, html[data-theme] {
+    --header-bg: #071A3A;
+    --header-color: #CFE0F2;
+    --header-branding-color: #FFFFFF;
+    --header-link-color: #FFFFFF;
+
+    --breadcrumbs-bg: #0A2149;
+    --breadcrumbs-fg: #BFD6EE;
+    --breadcrumbs-link-fg: #FFFFFF;
+
+    --primary: #0A2149;
+    --secondary: #0E9F9F;
+    --accent: #14B8B0;
+
+    --button-bg: #0E9F9F;
+    --button-hover-bg: #0B8686;
+    --default-button-bg: #0E9F9F;
+    --default-button-hover-bg: #0B8686;
+    --object-tools-bg: #0E9F9F;
+    --object-tools-hover-bg: #0B8686;
+}
+
+.rw-admin-brand { display: flex; align-items: center; gap: 10px; }
+.rw-admin-brand a { color: #FFFFFF; font-size: 1.3rem; font-weight: 600; text-decoration: none; }
+.rw-admin-brand span { color: #14B8B0; }
+
+#header { padding: 10px 40px; }
+
+/* RW-D2 */
+.rw-dash { margin-bottom: 24px; }
+
+.rw-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.rw-kpi {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px;
+    background: var(--body-bg);
+    border: 1px solid var(--hairline-color);
+    border-radius: 12px;
+}
+.rw-kpi-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.4rem;
+}
+.rw-kpi-value { font-size: 1.7rem; font-weight: 700; line-height: 1.1; color: var(--body-fg); }
+.rw-kpi-label { font-size: 0.85rem; color: var(--body-quiet-color); }
+
+.rw-dash-row { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 18px; }
+@media (min-width: 992px) { .rw-dash-row { grid-template-columns: 1fr 2fr; } }
+
+.rw-panel {
+    background: var(--body-bg);
+    border: 1px solid var(--hairline-color);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+}
+.rw-dash-row .rw-panel { margin-bottom: 0; }
+.rw-panel h2 { margin: 0 0 12px; padding: 0; background: none; color: var(--body-fg); font-size: 1rem; font-weight: 600; text-transform: none; }
+.rw-chart-box { position: relative; height: 260px; }
+
+.rw-table-wrap { overflow-x: auto; }
+.rw-table { width: 100%; border-collapse: collapse; }
+.rw-table th { text-align: left; font-size: 0.8rem; text-transform: uppercase; color: var(--body-quiet-color); padding: 8px 10px; border-bottom: 1px solid var(--hairline-color); }
+.rw-table td { padding: 10px; border-bottom: 1px solid var(--hairline-color); color: var(--body-fg); }
+.rw-table tr:last-child td { border-bottom: 0; }
+
+.rw-badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #fff; }
+.rw-b-low { background: #10B981; }
+.rw-b-medium { background: #F59E0B; color: #3B2A00; }
+.rw-b-high { background: #EF4444; }
+
+.rw-b-admin { background: #3B82F6; }
+.rw-b-user { background: #64748B; }
+.rw-b-yes { background: #10B981; }
+.rw-b-no { background: #64748B; }
+
+.rw-empty { text-align: center; padding: 36px 18px; }
+.rw-empty i { font-size: 2.4rem; color: #0E9F9F; }
+
+/* RW-D6 */
+.rw-nav-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-left: 18px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.rw-nav-link:hover { background: #0E9F9F; }
+
+.rw-dash-actions { margin-bottom: 14px; }
+.rw-dash-actions .button { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+
+.rw-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 992px) {
+    .rw-grid-2 { grid-template-columns: 1fr 1fr; }
+    .rw-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+.rw-sub { font-weight: 600; margin-bottom: 8px; color: var(--body-fg); }
+.rw-note { color: var(--body-quiet-color); margin: 0; }
+
+.rw-fig { margin: 0; border: 1px solid var(--hairline-color); border-radius: 10px; padding: 8px; background: #fff; }
+.rw-fig img { width: 100%; height: auto; display: block; }
+.rw-fig figcaption { text-align: center; font-size: 0.85rem; color: #475569; margin-top: 6px; }
+.rw-fig-wide { grid-column: 1 / -1; }
+
+.rw-table tr.rw-best td { background: rgba(14, 159, 159, 0.1); font-weight: 600; }
+
