@@ -1,0 +1,96 @@
+// =============================================================================
+// RISKWISE POWER BI DAX MEASURES SPECIFICATION
+// Project: FinTech Credit Risk Scoring & Loan Default Predictor
+// Source Table: RiskWise_Portfolio (or LoanApplications merged with Predictions)
+// Safe Division: Uses DIVIDE(Numerator, Denominator, AlternateResult)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. PORTFOLIO VOLUME & COUNTS
+// -----------------------------------------------------------------------------
+
+Total Applications = 
+COUNTROWS('RiskWise_Portfolio')
+
+Total Predictions = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    NOT(ISBLANK('RiskWise_Portfolio'[credit_score]))
+)
+
+Demo Records Count = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    'RiskWise_Portfolio'[is_demo] = "Demo"
+)
+
+Real Records Count = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    'RiskWise_Portfolio'[is_demo] = "Real"
+)
+
+Demo Share Percentage = 
+DIVIDE([Demo Records Count], [Total Applications], 0)
+
+// -----------------------------------------------------------------------------
+// 2. RISK CATEGORY METRICS
+// -----------------------------------------------------------------------------
+
+High-Risk Count = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    'RiskWise_Portfolio'[risk_level] = "High"
+)
+
+Medium-Risk Count = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    'RiskWise_Portfolio'[risk_level] = "Medium"
+)
+
+Low-Risk Count = 
+CALCULATE(
+    COUNTROWS('RiskWise_Portfolio'),
+    'RiskWise_Portfolio'[risk_level] = "Low"
+)
+
+// NOTE: Predicted High-Risk % reflects ML model risk assessment (Credit Score < 600 or Prob >= 0.50)
+// This is NOT an observed historical default rate.
+Predicted High-Risk Percentage = 
+DIVIDE([High-Risk Count], [Total Applications], 0)
+
+Predicted Low-Risk Percentage = 
+DIVIDE([Low-Risk Count], [Total Applications], 0)
+
+// -----------------------------------------------------------------------------
+// 3. CREDIT SCORE & PROBABILITY AVERAGES
+// -----------------------------------------------------------------------------
+
+Average Credit Score = 
+AVERAGE('RiskWise_Portfolio'[credit_score])
+
+Average Default Probability = 
+AVERAGE('RiskWise_Portfolio'[default_probability])
+
+Average Default Probability Pct = 
+[Average Default Probability] * 100
+
+// -----------------------------------------------------------------------------
+// 4. FINANCIAL EXPOSURE METRICS
+// -----------------------------------------------------------------------------
+
+Total Loan Portfolio Volume = 
+SUM('RiskWise_Portfolio'[loan_amount])
+
+Average Loan Amount = 
+AVERAGE('RiskWise_Portfolio'[loan_amount])
+
+Average Annual Income = 
+AVERAGE('RiskWise_Portfolio'[annual_income])
+
+Average Interest Rate = 
+AVERAGE('RiskWise_Portfolio'[interest_rate])
+
+Average Debt-to-Income = 
+AVERAGE('RiskWise_Portfolio'[loan_to_income])
