@@ -115,7 +115,10 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect("home")
 
-    form = RegisterForm(request.POST or None)
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+    else:
+        form = RegisterForm()
 
     if request.method == "POST" and form.is_valid():
         user = form.save()
@@ -149,7 +152,10 @@ def history_view(request):
 
 @login_required
 def risk_checker_view(request):
-    form = RiskCheckerForm(request.POST or None)
+    if request.method == "POST":
+        form = RiskCheckerForm(request.POST)
+    else:
+        form = RiskCheckerForm()
 
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data.copy()

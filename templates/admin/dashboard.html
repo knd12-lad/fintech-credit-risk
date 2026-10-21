@@ -1,117 +1,374 @@
-{# RW-D2 #}
-{% extends "admin/index.html" %}
+{% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block extrahead %}
 {{ block.super }}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="rw-dash">
-    <div class="rw-dash-actions">
-        <a class="button" href="{% url 'admin:analytics' %}"><i class="bi bi-bar-chart-line"></i> View Analytics</a>
-    </div>
+<div class="rw-dashboard-container">
 
-    <div class="rw-kpis">
-        <div class="rw-kpi">
-            <span class="rw-kpi-icon" style="background:#0E9F9F"><i class="bi bi-file-earmark-text"></i></span>
-            <div><div class="rw-kpi-value">{{ kpi.applications }}</div><div class="rw-kpi-label">Total applications</div></div>
+    <!-- Welcome & Action Banner -->
+    <div class="rw-hero-banner">
+        <div class="rw-hero-text">
+            <h1>Credit Risk Operations Dashboard</h1>
+            <p>Real-time loan application pipeline, machine learning default prediction, and borrower telemetry.</p>
         </div>
-        <div class="rw-kpi">
-            <span class="rw-kpi-icon" style="background:#3B82F6"><i class="bi bi-people"></i></span>
-            <div><div class="rw-kpi-value">{{ kpi.users }}</div><div class="rw-kpi-label">Registered users</div></div>
-        </div>
-        <div class="rw-kpi">
-            <span class="rw-kpi-icon" style="background:#EF4444"><i class="bi bi-exclamation-octagon"></i></span>
-            <div><div class="rw-kpi-value">{{ kpi.default_pct }}%</div><div class="rw-kpi-label">Predicted default rate</div></div>
-        </div>
-        <div class="rw-kpi">
-            <span class="rw-kpi-icon" style="background:#8B5CF6"><i class="bi bi-speedometer2"></i></span>
-            <div><div class="rw-kpi-value">{{ kpi.avg_score }}</div><div class="rw-kpi-label">Average credit score</div></div>
+        <div class="rw-hero-actions">
+            <a href="{% url 'risk_checker' %}" class="rw-btn rw-btn-primary" target="_blank">
+                <i class="bi bi-lightning-charge-fill"></i> New Loan Assessment
+            </a>
+            <a href="{% url 'admin:analytics' %}" class="rw-btn rw-btn-glass">
+                <i class="bi bi-bar-chart-line-fill"></i> ML Deep Analytics
+            </a>
         </div>
     </div>
 
+    <!-- 4 High-End KPI Metric Cards -->
+    <div class="rw-kpi-grid">
+        <!-- KPI 1 -->
+        <div class="rw-metric-card rw-border-teal">
+            <div class="rw-metric-header">
+                <div class="rw-metric-icon-box rw-icon-teal">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <span class="rw-metric-tag rw-tag-teal">Inflow</span>
+            </div>
+            <div class="rw-metric-content">
+                <div class="rw-metric-value">{{ kpi.applications }}</div>
+                <div class="rw-metric-title">Total Applications</div>
+            </div>
+            <div class="rw-metric-footer">
+                <i class="bi bi-arrow-up-right"></i> Live applications received
+            </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="rw-metric-card rw-border-blue">
+            <div class="rw-metric-header">
+                <div class="rw-metric-icon-box rw-icon-blue">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <span class="rw-metric-tag rw-tag-blue">Portal</span>
+            </div>
+            <div class="rw-metric-content">
+                <div class="rw-metric-value">{{ kpi.users }}</div>
+                <div class="rw-metric-title">Registered Borrowers</div>
+            </div>
+            <div class="rw-metric-footer">
+                <i class="bi bi-person-check"></i> Verified user profiles
+            </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="rw-metric-card rw-border-red">
+            <div class="rw-metric-header">
+                <div class="rw-metric-icon-box rw-icon-red">
+                    <i class="bi bi-shield-slash-fill"></i>
+                </div>
+                <span class="rw-metric-tag rw-tag-red">Risk Signal</span>
+            </div>
+            <div class="rw-metric-content">
+                <div class="rw-metric-value">{{ kpi.default_pct }}%</div>
+                <div class="rw-metric-title">Predicted Default Rate</div>
+            </div>
+            <div class="rw-metric-footer">
+                <i class="bi bi-cpu"></i> Baseline benchmark: 21.9%
+            </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="rw-metric-card rw-border-purple">
+            <div class="rw-metric-header">
+                <div class="rw-metric-icon-box rw-icon-purple">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <span class="rw-metric-tag rw-tag-purple">FICO Scale</span>
+            </div>
+            <div class="rw-metric-content">
+                <div class="rw-metric-value">{{ kpi.avg_score }}</div>
+                <div class="rw-metric-title">Average Credit Score</div>
+            </div>
+            <div class="rw-metric-footer">
+                <i class="bi bi-activity"></i> Calibrated range 300 to 900
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Charts Row -->
     {% if has_data %}
-    <div class="rw-dash-row">
-        <div class="rw-panel">
-            <h2>Risk distribution</h2>
-            <div class="rw-chart-box"><canvas id="riskChart"></canvas></div>
+    <div class="rw-charts-grid">
+        <!-- Risk Distribution Chart -->
+        <div class="rw-surface-panel rw-panel-doughnut">
+            <div class="rw-panel-header">
+                <div>
+                    <h2>Portfolio Risk Breakdown</h2>
+                    <span class="rw-panel-sub">Segmented borrower risk tiers</span>
+                </div>
+                <span class="rw-badge-live"><i class="bi bi-record-fill"></i> Model Calibrated</span>
+            </div>
+            <div class="rw-doughnut-wrapper">
+                <div class="rw-chart-canvas-box">
+                    <canvas id="riskDoughnutChart"></canvas>
+                </div>
+            </div>
+            <div class="rw-legend-bar">
+                <div class="rw-legend-pill rw-pill-low">
+                    <span class="rw-dot rw-dot-low"></span>
+                    <span class="rw-leg-name">Low (780+)</span>
+                </div>
+                <div class="rw-legend-pill rw-pill-med">
+                    <span class="rw-dot rw-dot-med"></span>
+                    <span class="rw-leg-name">Medium (600-779)</span>
+                </div>
+                <div class="rw-legend-pill rw-pill-high">
+                    <span class="rw-dot rw-dot-high"></span>
+                    <span class="rw-leg-name">High (&lt;600)</span>
+                </div>
+            </div>
         </div>
-        <div class="rw-panel rw-panel-wide">
-            <h2>Applications, last 14 days</h2>
-            <div class="rw-chart-box"><canvas id="dayChart"></canvas></div>
+
+        <!-- Applications Timeline -->
+        <div class="rw-surface-panel rw-panel-timeline">
+            <div class="rw-panel-header">
+                <div>
+                    <h2>Application Velocity (Last 14 Days)</h2>
+                    <span class="rw-panel-sub">Volume of loan evaluations processed daily</span>
+                </div>
+                <div class="rw-badge-tag"><i class="bi bi-clock-history"></i> Daily Trend</div>
+            </div>
+            <div class="rw-chart-canvas-box rw-box-line">
+                <canvas id="appTrendChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <div class="rw-panel">
-        <h2>Recent predictions</h2>
-        <div class="rw-table-wrap">
-            <table class="rw-table">
+    <!-- Recent Predictions Table -->
+    <div class="rw-surface-panel rw-panel-table">
+        <div class="rw-panel-header">
+            <div>
+                <h2>Recent Loan Risk Predictions</h2>
+                <span class="rw-panel-sub">Latest applicant risk evaluations processed through the ML pipeline</span>
+            </div>
+            <div class="rw-table-tools">
+                <a href="{% url 'admin:risk_app_prediction_changelist' %}" class="rw-link-btn">
+                    View Full Prediction Log <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="rw-table-responsive">
+            <table class="rw-modern-table">
                 <thead>
-                    <tr><th>Applicant</th><th>Loan amount</th><th>Credit score</th><th>Default probability</th><th>Risk</th><th>Date</th></tr>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Loan Amount</th>
+                        <th>Credit Score</th>
+                        <th>Default Probability</th>
+                        <th>Risk Tier</th>
+                        <th>Evaluation Date</th>
+                        <th class="text-right">Action</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for r in recent %}
                     <tr>
-                        <td><a href="{% url 'admin:risk_app_prediction_change' r.id %}">{{ r.name }}</a></td>
-                        <td>{{ r.amount }}</td>
-                        <td>{{ r.score }}</td>
-                        <td>{{ r.prob }}%</td>
-                        <td><span class="rw-badge rw-b-{{ r.risk|lower }}">{{ r.risk }}</span></td>
-                        <td>{{ r.created|date:"d M Y, H:i" }}</td>
+                        <td>
+                            <div class="rw-applicant-cell">
+                                <div class="rw-avatar-circle">{{ r.name|slice:":1"|upper }}</div>
+                                <div>
+                                    <div class="rw-applicant-name">{{ r.name }}</div>
+                                    <div class="rw-applicant-sub">ID: #{{ r.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="rw-amount-badge">₹ {{ r.amount }}</span>
+                        </td>
+                        <td>
+                            <div class="rw-score-pill {% if r.score >= 780 %}score-high{% elif r.score >= 600 %}score-med{% else %}score-low{% endif %}">
+                                <i class="bi bi-speedometer"></i> {{ r.score }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="rw-prob-bar-wrapper">
+                                <span class="rw-prob-num">{{ r.prob }}%</span>
+                                <div class="rw-prob-track">
+                                    <div class="rw-prob-fill {% if r.prob < 25 %}fill-green{% elif r.prob < 50 %}fill-amber{% else %}fill-red{% endif %}" data-prob="{{ r.prob }}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="rw-status-pill rw-pill-{{ r.risk|lower }}">
+                                <span class="rw-pill-dot"></span>
+                                {{ r.risk }} Risk
+                            </span>
+                        </td>
+                        <td>
+                            <span class="rw-date-label"><i class="bi bi-calendar-event"></i> {{ r.created|date:"d M Y, H:i" }}</span>
+                        </td>
+                        <td class="text-right">
+                            <a href="{% url 'admin:risk_app_prediction_change' r.id %}" class="rw-action-icon" title="View Details">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
     {% else %}
-    <div class="rw-panel rw-empty">
-        <i class="bi bi-bar-chart-line"></i>
-        <h2>No predictions yet</h2>
-        <p>Charts will appear here after users make predictions from the Risk Checker page.</p>
+    <!-- Empty State -->
+    <div class="rw-surface-panel rw-empty-state">
+        <div class="rw-empty-icon">
+            <i class="bi bi-bar-chart-steps"></i>
+        </div>
+        <h2>No Live Predictions Yet</h2>
+        <p>The system is primed and ready. Submit your first loan assessment using the Risk Checker to visualize portfolio risk distribution and analytics in real-time.</p>
+        <a href="{% url 'risk_checker' %}" class="rw-btn rw-btn-primary" target="_blank">
+            <i class="bi bi-play-fill"></i> Run First Prediction
+        </a>
     </div>
     {% endif %}
-</div>
 
-{{ block.super }}
+    <!-- Operations Quick Hub -->
+    <div class="rw-quick-hub">
+        <a href="{% url 'admin:risk_app_loanapplication_changelist' %}" class="rw-hub-card">
+            <div class="rw-hub-icon icon-cyan"><i class="bi bi-file-earmark-person"></i></div>
+            <div>
+                <div class="rw-hub-title">Loan Applicants</div>
+                <div class="rw-hub-desc">Review full borrower applications, employment length & income data</div>
+            </div>
+            <i class="bi bi-arrow-right rw-hub-arrow"></i>
+        </a>
+        <a href="{% url 'admin:risk_app_prediction_changelist' %}" class="rw-hub-card">
+            <div class="rw-hub-icon icon-teal"><i class="bi bi-shield-check"></i></div>
+            <div>
+                <div class="rw-hub-title">Export Predictions</div>
+                <div class="rw-hub-desc">Generate compliance-ready CSV exports with full feature attribution</div>
+            </div>
+            <i class="bi bi-arrow-right rw-hub-arrow"></i>
+        </a>
+        <a href="{% url 'admin:risk_app_user_changelist' %}" class="rw-hub-card">
+            <div class="rw-hub-icon icon-blue"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="rw-hub-title">User Accounts</div>
+                <div class="rw-hub-desc">Manage system access, borrower roles and portal authentication</div>
+            </div>
+            <i class="bi bi-arrow-right rw-hub-arrow"></i>
+        </a>
+        <a href="{% url 'admin:analytics' %}" class="rw-hub-card">
+            <div class="rw-hub-icon icon-purple"><i class="bi bi-cpu"></i></div>
+            <div>
+                <div class="rw-hub-title">Model Performance</div>
+                <div class="rw-hub-desc">Explore ROC curves, confusion matrix and feature importances</div>
+            </div>
+            <i class="bi bi-arrow-right rw-hub-arrow"></i>
+        </a>
+    </div>
+
+</div>
 
 {% if has_data %}
 {{ chart_data|json_script:"rw-dash-data" }}
 <script>
 (function () {
     var d = JSON.parse(document.getElementById("rw-dash-data").textContent);
-    var style = getComputedStyle(document.body);
-    Chart.defaults.color = style.color;
-    Chart.defaults.font.family = style.fontFamily;
 
-    new Chart(document.getElementById("riskChart"), {
-        type: "doughnut",
-        data: {
-            labels: ["Low", "Medium", "High"],
-            datasets: [{ data: d.risk, backgroundColor: ["#10B981", "#F59E0B", "#EF4444"], borderWidth: 0 }]
-        },
-        options: { maintainAspectRatio: false, cutout: "62%", plugins: { legend: { position: "bottom" } } }
-    });
+    // Modern Doughnut Chart
+    var doughnutCtx = document.getElementById("riskDoughnutChart");
+    if (doughnutCtx) {
+        new Chart(doughnutCtx, {
+            type: "doughnut",
+            data: {
+                labels: ["Low Risk", "Medium Risk", "High Risk"],
+                datasets: [{
+                    data: d.risk,
+                    backgroundColor: ["#16A34A", "#F59E0B", "#EF4444"],
+                    hoverBackgroundColor: ["#22C55E", "#FBBF24", "#F87171"],
+                    borderWidth: 3,
+                    borderColor: "#FFFFFF",
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "74%",
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#0B132B",
+                        titleColor: "#FFFFFF",
+                        bodyColor: "#E2E8F0",
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
 
-    new Chart(document.getElementById("dayChart"), {
-        type: "line",
-        data: {
-            labels: d.days,
-            datasets: [{
-                label: "Applications",
-                data: d.per_day,
-                borderColor: "#0E9F9F",
-                backgroundColor: "rgba(14, 159, 159, 0.15)",
-                fill: true, tension: 0.3, pointRadius: 3
-            }]
-        },
-        options: {
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-            plugins: { legend: { display: false } }
-        }
+    // Modern Curved Area Chart
+    var trendCtx = document.getElementById("appTrendChart");
+    if (trendCtx) {
+        var gradient = trendCtx.getContext("2d").createLinearGradient(0, 0, 0, 240);
+        gradient.addColorStop(0, "rgba(20, 184, 166, 0.28)");
+        gradient.addColorStop(1, "rgba(20, 184, 166, 0.0)");
+
+        new Chart(trendCtx, {
+            type: "line",
+            data: {
+                labels: d.days,
+                datasets: [{
+                    label: "Applications",
+                    data: d.per_day,
+                    borderColor: "#14B8A6",
+                    borderWidth: 2.5,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.38,
+                    pointBackgroundColor: "#14B8A6",
+                    pointBorderColor: "#FFFFFF",
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: "#F1F5F9" },
+                        ticks: { color: "#64748B", font: { size: 11, family: "Inter" } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "#F1F5F9" },
+                        ticks: { color: "#64748B", font: { size: 11, family: "Inter" }, precision: 0 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#0B132B",
+                        titleColor: "#FFFFFF",
+                        bodyColor: "#E2E8F0",
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
+
+    // Set probability bar widths cleanly without CSS linter errors
+    document.querySelectorAll(".rw-prob-fill[data-prob]").forEach(function(el) {
+        el.style.width = el.getAttribute("data-prob") + "%";
     });
 })();
 </script>
