@@ -215,6 +215,13 @@ python manage.py runserver
 ```
 Access the application at `http://127.0.0.1:8000/`.
 
+### 17.1 Simultaneous Side-by-Side Testing (Admin + Borrower in Single Chrome)
+To test both portals concurrently in Google Chrome without session cookie collisions:
+* **Left Tab (Admin Portal):** `http://127.0.0.1:8000/admin/` (Login with Admin account)
+* **Right Tab (Borrower Portal):** `http://localhost:8000/` (Login with Borrower account)
+
+*(See [`DUAL_PORTAL_GUIDE.md`](file:///c:/fintech-credit-risk/DUAL_PORTAL_GUIDE.md) for complete step-by-step documentation)*
+
 ---
 
 ## 18. Test Execution Instructions

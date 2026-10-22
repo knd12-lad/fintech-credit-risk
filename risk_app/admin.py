@@ -60,7 +60,6 @@ class CustomUserAdmin(UserAdmin):
         "email", "full_name", "role_badge", "application_count",
         "status_badge", "last_login", "date_joined",
     )
-    list_filter = ("role", "is_active", "date_joined")
     search_fields = ("email", "full_name")
     actions = ["activate_users", "deactivate_users"]
 
@@ -149,10 +148,6 @@ class LoanApplicationAdmin(admin.ModelAdmin):
         "loan_display", "ratio_display", "loan_grade", "interest_rate",
         "previous_default", "score_display", "risk_display", "created_at",
     )
-    list_filter = (
-        "loan_type", "loan_grade", "home_ownership", "previous_default",
-        "prediction__risk_level", "created_at",
-    )
     search_fields = ("full_name", "user__email")
 
     fieldsets = (
@@ -213,10 +208,6 @@ class PredictionAdmin(admin.ModelAdmin):
     list_display = (
         "applicant", "user_email", "loan_type", "loan_amount", "credit_score",
         "probability_display", "risk_display", "result_display", "created_at",
-    )
-    list_filter = (
-        "risk_level", "predicted_status", "application__loan_type",
-        "application__loan_grade", "created_at",
     )
     search_fields = ("application__full_name", "application__user__email")
 
@@ -309,7 +300,6 @@ class PredictionAdmin(admin.ModelAdmin):
 @admin.register(LoanType)
 class LoanTypeAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "is_active")
-    list_filter = ("is_active",)
     search_fields = ("name", "code")
 
 
@@ -321,12 +311,10 @@ class ModelInfoAdmin(admin.ModelAdmin):
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ("subject", "name", "email", "is_read", "created_at")
-    list_filter = ("is_read",)
     search_fields = ("name", "email", "subject")
 
 
 @admin.register(ActivityLog)
 class ActivityLogAdmin(admin.ModelAdmin):
     list_display = ("action", "user", "ip_address", "created_at")
-    list_filter = ("action",)
     search_fields = ("action", "user__email")
