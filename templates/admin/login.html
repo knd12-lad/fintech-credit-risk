@@ -1,0 +1,444 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | RiskWise Underwriting & Analytics</title>
+
+    <!-- Google Fonts: Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --rx-navy-900: #060B18;
+            --rx-navy-800: #0B132B;
+            --rx-navy-700: #141E3C;
+            --rx-navy-600: #1C2541;
+            --rx-teal: #14B8A6;
+            --rx-teal-glow: rgba(20, 184, 166, 0.35);
+            --rx-teal-dark: #0D9488;
+            --rx-text-main: #FFFFFF;
+            --rx-text-muted: #94A3B8;
+            --rx-card-bg: rgba(15, 23, 42, 0.78);
+            --rx-card-border: rgba(20, 184, 166, 0.22);
+            --rx-danger: #EF4444;
+            --rx-danger-bg: rgba(239, 68, 68, 0.12);
+            --rx-danger-border: rgba(239, 68, 68, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1C2541 0%, #0B132B 55%, #060B18 100%);
+            color: var(--rx-text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow & Grid Backdrop */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(circle, var(--rx-teal-glow) 0%, rgba(20, 184, 166, 0) 70%);
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .rw-admin-container {
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top Brand Header */
+        .rw-auth-header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        .rw-brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .rw-brand-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.02em;
+            color: #FFFFFF;
+        }
+
+        .rw-brand-name span {
+            color: var(--rx-teal);
+        }
+
+        .rw-security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: rgba(20, 184, 166, 0.12);
+            border: 1px solid rgba(20, 184, 166, 0.35);
+            border-radius: 9999px;
+            color: #2DD4BF;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .rw-pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: #2DD4BF;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #2DD4BF;
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.25); }
+        }
+
+        /* Main Glassmorphic Card */
+        .rw-auth-card {
+            background: var(--rx-card-bg);
+            border: 1px solid var(--rx-card-border);
+            border-radius: 20px;
+            padding: 34px 32px 30px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .rw-card-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 6px;
+        }
+
+        .rw-card-subtitle {
+            font-size: 0.85rem;
+            color: var(--rx-text-muted);
+            margin-bottom: 24px;
+            line-height: 1.45;
+        }
+
+        /* Alerts */
+        .rw-alert-danger {
+            background: var(--rx-danger-bg);
+            border: 1px solid var(--rx-danger-border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #FCA5A5;
+            font-size: 0.84rem;
+            line-height: 1.4;
+        }
+
+        .rw-alert-danger i {
+            color: var(--rx-danger);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Form Controls */
+        .rw-form-group {
+            margin-bottom: 20px;
+        }
+
+        .rw-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #E2E8F0;
+            margin-bottom: 8px;
+        }
+
+        .rw-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .rw-input-icon {
+            position: absolute;
+            left: 14px;
+            color: #64748B;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .rw-input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background: rgba(11, 19, 43, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+        }
+
+        .rw-input:focus {
+            outline: none;
+            border-color: var(--rx-teal);
+            background: rgba(11, 19, 43, 0.95);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+        }
+
+        .rw-input:focus + .rw-input-icon,
+        .rw-input-wrapper:focus-within .rw-input-icon {
+            color: var(--rx-teal);
+        }
+
+        .rw-password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #64748B;
+            cursor: pointer;
+            padding: 6px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+
+        .rw-password-toggle:hover {
+            color: #FFFFFF;
+        }
+
+        /* Submit Button */
+        .rw-submit-btn {
+            width: 100%;
+            padding: 13px 20px;
+            background: linear-gradient(135deg, var(--rx-teal) 0%, var(--rx-teal-dark) 100%);
+            border: none;
+            border-radius: 10px;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 26px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.35);
+        }
+
+        .rw-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(20, 184, 166, 0.45);
+            filter: brightness(1.06);
+        }
+
+        .rw-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Security Assurance Box */
+        .rw-security-notice {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            color: #64748B;
+            font-size: 0.74rem;
+            text-align: center;
+        }
+
+        .rw-security-notice i {
+            color: var(--rx-teal);
+            font-size: 0.85rem;
+        }
+
+        /* Back Link */
+        .rw-back-wrapper {
+            text-align: center;
+            margin-top: 22px;
+        }
+
+        .rw-back-link {
+            color: #94A3B8;
+            font-size: 0.84rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.15s;
+        }
+
+        .rw-back-link:hover {
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="rw-admin-container">
+    <!-- Header -->
+    <header class="rw-auth-header">
+        <a href="{% url 'home' %}" class="rw-brand-mark">
+            <img src="{% static 'images/logo.svg' %}" alt="RiskWise" width="40" height="40">
+            <div class="rw-brand-name">Risk<span>Wise</span></div>
+        </a>
+        <div>
+            <span class="rw-security-badge">
+                <span class="rw-pulse-dot"></span>
+                Admin Security Gate
+            </span>
+        </div>
+    </header>
+
+    <!-- Card -->
+    <main class="rw-auth-card">
+        <h1 class="rw-card-title">Staff Portal Login</h1>
+        <p class="rw-card-subtitle">
+            Enter administrative credentials to access underwriting risk dashboards, model telemetry, and applicant records.
+        </p>
+
+        {% if form.errors and not form.non_field_errors %}
+        <div class="rw-alert-danger">
+            <i class="bi bi-shield-exclamation"></i>
+            <div>Please correct the errors below and try again.</div>
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="rw-alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="admin-login-form" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <!-- Username / Email Field -->
+            <div class="rw-form-group">
+                <label for="id_username" class="rw-label">
+                    <span>Admin Email / Username</span>
+                </label>
+                <div class="rw-input-wrapper">
+                    <i class="bi bi-person-badge rw-input-icon"></i>
+                    <input type="text"
+                           name="username"
+                           id="id_username"
+                           class="rw-input"
+                           placeholder="admin@riskwise.internal"
+                           value="{{ form.username.value|default:'' }}"
+                           autocomplete="username"
+                           autofocus
+                           required>
+                </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="rw-form-group">
+                <label for="id_password" class="rw-label">
+                    <span>Master Password</span>
+                </label>
+                <div class="rw-input-wrapper">
+                    <i class="bi bi-key rw-input-icon"></i>
+                    <input type="password"
+                           name="password"
+                           id="id_password"
+                           class="rw-input"
+                           placeholder="••••••••••••"
+                           autocomplete="current-password"
+                           required>
+                    <button type="button" class="rw-password-toggle" id="togglePasswordBtn" title="Toggle password visibility">
+                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="rw-submit-btn">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Sign In to Admin Hub</span>
+            </button>
+        </form>
+
+        <div class="rw-security-notice">
+            <i class="bi bi-shield-check"></i>
+            <span>Authorized access only • Activity logged with IP & timestamp</span>
+        </div>
+    </main>
+
+    <!-- Return Link -->
+    <div class="rw-back-wrapper">
+        <a href="{% url 'home' %}" class="rw-back-link">
+            <i class="bi bi-arrow-left"></i>
+            <span>Return to Public Website</span>
+        </a>
+    </div>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const pwdInput = document.getElementById('id_password');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    if (toggleBtn && pwdInput) {
+        toggleBtn.addEventListener('click', function () {
+            const isPassword = pwdInput.type === 'password';
+            pwdInput.type = isPassword ? 'text' : 'password';
+            toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+</script>
+
+</body>
+</html>

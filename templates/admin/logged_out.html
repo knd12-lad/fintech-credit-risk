@@ -1,0 +1,342 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged Out | RiskWise Admin Portal</title>
+
+    <!-- Google Fonts: Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --rx-navy-900: #060B18;
+            --rx-navy-800: #0B132B;
+            --rx-navy-700: #141E3C;
+            --rx-navy-600: #1C2541;
+            --rx-teal: #14B8A6;
+            --rx-teal-glow: rgba(20, 184, 166, 0.35);
+            --rx-teal-dark: #0D9488;
+            --rx-text-main: #FFFFFF;
+            --rx-text-muted: #94A3B8;
+            --rx-card-bg: rgba(15, 23, 42, 0.82);
+            --rx-card-border: rgba(20, 184, 166, 0.22);
+            --rx-success: #10B981;
+            --rx-success-bg: rgba(16, 185, 129, 0.12);
+            --rx-success-border: rgba(16, 185, 129, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1C2541 0%, #0B132B 55%, #060B18 100%);
+            color: var(--rx-text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow & Grid Backdrop */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 580px;
+            height: 380px;
+            background: radial-gradient(circle, var(--rx-teal-glow) 0%, rgba(20, 184, 166, 0) 70%);
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .rw-admin-container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top Brand Header */
+        .rw-auth-header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        .rw-brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            text-decoration: none;
+        }
+
+        .rw-brand-name {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.02em;
+            color: #FFFFFF;
+        }
+
+        .rw-brand-name span {
+            color: var(--rx-teal);
+        }
+
+        /* Main Card */
+        .rw-auth-card {
+            background: var(--rx-card-bg);
+            border: 1px solid var(--rx-card-border);
+            border-radius: 20px;
+            padding: 38px 32px 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        /* Success Shield Icon */
+        .rw-status-icon-wrapper {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.12);
+            border: 2px solid rgba(16, 185, 129, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--rx-success);
+            font-size: 2.2rem;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .rw-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: var(--rx-success-bg);
+            border: 1px solid var(--rx-success-border);
+            border-radius: 9999px;
+            color: #34D399;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .rw-card-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 10px;
+        }
+
+        .rw-card-subtitle {
+            font-size: 0.88rem;
+            color: var(--rx-text-muted);
+            margin-bottom: 28px;
+            line-height: 1.55;
+        }
+
+        /* Status Details Box */
+        .rw-session-box {
+            background: rgba(11, 19, 43, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            text-align: left;
+        }
+
+        .rw-session-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .rw-session-label {
+            font-size: 0.72rem;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .rw-session-value {
+            font-size: 0.86rem;
+            color: #E2E8F0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rw-session-divider {
+            width: 1px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Action Buttons */
+        .rw-action-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rw-btn-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 20px;
+            background: linear-gradient(135deg, var(--rx-teal) 0%, var(--rx-teal-dark) 100%);
+            border: none;
+            border-radius: 10px;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(20, 184, 166, 0.35);
+        }
+
+        .rw-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(20, 184, 166, 0.45);
+            filter: brightness(1.06);
+            color: #FFFFFF;
+        }
+
+        .rw-btn-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #CBD5E1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .rw-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+        }
+
+        .rw-security-footer {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: #64748B;
+            font-size: 0.74rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="rw-admin-container">
+    <header class="rw-auth-header">
+        <a href="{% url 'home' %}" class="rw-brand-mark">
+            <img src="{% static 'images/logo.svg' %}" alt="RiskWise" width="40" height="40">
+            <div class="rw-brand-name">Risk<span>Wise</span></div>
+        </a>
+    </header>
+
+    <main class="rw-auth-card">
+        <div class="rw-status-icon-wrapper">
+            <i class="bi bi-shield-check"></i>
+        </div>
+
+        <div>
+            <span class="rw-status-badge">
+                <i class="bi bi-lock-fill"></i>
+                Session Terminated
+            </span>
+        </div>
+
+        <h1 class="rw-card-title">Successfully Logged Out</h1>
+        <p class="rw-card-subtitle">
+            Your administrative session has been safely closed and your credentials have been cleared from this browser session.
+        </p>
+
+        <!-- Session Status -->
+        <div class="rw-session-box">
+            <div class="rw-session-item">
+                <span class="rw-session-label">Session Status</span>
+                <span class="rw-session-value">
+                    <i class="bi bi-circle-fill text-muted" style="font-size: 0.5rem; color: #94A3B8 !important;"></i>
+                    Logged Out
+                </span>
+            </div>
+            <div class="rw-session-divider"></div>
+            <div class="rw-session-item">
+                <span class="rw-session-label">Security Tokens</span>
+                <span class="rw-session-value">
+                    <i class="bi bi-check-circle-fill" style="color: #34D399; font-size: 0.8rem;"></i>
+                    Cleared & Protected
+                </span>
+            </div>
+        </div>
+
+        <!-- Action Links -->
+        <div class="rw-action-stack">
+            <a href="{% url 'admin:login' %}" class="rw-btn-primary">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Sign In Again</span>
+            </a>
+            <a href="{% url 'home' %}" class="rw-btn-secondary">
+                <i class="bi bi-globe2"></i>
+                <span>Return to Public Website</span>
+            </a>
+        </div>
+
+        <div class="rw-security-footer">
+            <i class="bi bi-shield-lock"></i>
+            <span>RiskWise FinTech Enterprise • Underwriting Platform</span>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

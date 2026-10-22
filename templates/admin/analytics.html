@@ -65,7 +65,8 @@
                 <span class="rw-metric-tag rw-tag-blue">Benchmark</span>
             </div>
             <div class="rw-metric-content">
-                <div class="rw-metric-value">{% if best %}{{ best.roc_auc|floatformat:3 }}{% else %}0.935{% endif %}</div>
+                <div class="rw-metric-value">{% if best %}{{ best.roc_auc|floatformat:3 }}{% else %}0.935{% endif %}
+                </div>
                 <div class="rw-metric-title">Best Model ROC-AUC</div>
             </div>
             <div class="rw-metric-footer">
@@ -95,7 +96,8 @@
         <div class="rw-panel-header">
             <div>
                 <h2>Model Evaluation Benchmark Matrix (Phase 5)</h2>
-                <span class="rw-panel-sub">Rigorous comparison across Scikit-learn algorithms on stratified 20% test partition (6,482 rows)</span>
+                <span class="rw-panel-sub">Rigorous comparison across Scikit-learn algorithms on stratified 20% test
+                    partition (6,482 rows)</span>
             </div>
             <span class="rw-badge-live"><i class="bi bi-award-fill"></i> 4 Models Evaluated</span>
         </div>
@@ -119,10 +121,12 @@
                     <tr class="{% if m.best %}rw-row-best{% endif %}">
                         <td>
                             <div class="rw-model-cell">
-                                <i class="bi {% if m.best %}bi-cpu-fill text-teal{% else %}bi-cpu text-slate{% endif %}"></i>
+                                <i
+                                    class="bi {% if m.best %}bi-cpu-fill text-teal{% else %}bi-cpu text-slate{% endif %}"></i>
                                 <div>
                                     <div class="rw-model-name">{{ m.name }}</div>
-                                    <div class="rw-model-desc">{% if m.best %}Production candidate (max_depth=16, n_est=200){% else %}Baseline model comparison{% endif %}</div>
+                                    <div class="rw-model-desc">{% if m.best %}Production candidate (max_depth=16,
+                                        n_est=200){% else %}Baseline model comparison{% endif %}</div>
                                 </div>
                             </div>
                         </td>
@@ -251,7 +255,8 @@
         {% else %}
         <div class="rw-empty-telemetry">
             <i class="bi bi-activity"></i>
-            <p>No live portal predictions yet. These charts will automatically populate once users submit applications through the Risk Checker.</p>
+            <p>No live portal predictions yet. These charts will automatically populate once users submit applications
+                through the Risk Checker.</p>
         </div>
         {% endif %}
     </div>
@@ -261,7 +266,8 @@
         <div class="rw-panel-header">
             <div>
                 <h2>Model Validation Diagnostic Visualizations</h2>
-                <span class="rw-panel-sub">Confusion matrices, ROC curve trade-offs, and feature importance rankings</span>
+                <span class="rw-panel-sub">Confusion matrices, ROC curve trade-offs, and feature importance
+                    rankings</span>
             </div>
             <div class="rw-badge-tag"><i class="bi bi-file-earmark-image"></i> Artifacts</div>
         </div>
@@ -269,7 +275,8 @@
         <div class="rw-gallery-grid rw-gallery-3">
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/ml/01_confusion_matrices.png' %}" alt="Confusion matrices" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/ml/01_confusion_matrices.png' %}" alt="Confusion matrices"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Confusion Matrices</strong>
@@ -279,7 +286,8 @@
 
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/ml/02_roc_curves.png' %}" alt="ROC curves" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/ml/02_roc_curves.png' %}" alt="ROC curves"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>ROC Curves</strong>
@@ -289,7 +297,8 @@
 
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/ml/03_feature_importance.png' %}" alt="Feature importance" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/ml/03_feature_importance.png' %}" alt="Feature importance"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Feature Importance Rankings</strong>
@@ -304,7 +313,8 @@
         <div class="rw-panel-header">
             <div>
                 <h2>Exploratory Data Analysis (EDA) Gallery</h2>
-                <span class="rw-panel-sub">Statistical distributions and correlation patterns from initial dataset exploration</span>
+                <span class="rw-panel-sub">Statistical distributions and correlation patterns from initial dataset
+                    exploration</span>
             </div>
             <div class="rw-badge-tag"><i class="bi bi-images"></i> EDA Insights</div>
         </div>
@@ -312,7 +322,8 @@
         <div class="rw-gallery-grid rw-gallery-2">
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/eda/01_target_distribution.png' %}" alt="Target distribution" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/eda/01_target_distribution.png' %}" alt="Target distribution"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Target Class Distribution</strong>
@@ -322,7 +333,8 @@
 
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/eda/05_correlation_heatmap.png' %}" alt="Correlation heatmap" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/eda/05_correlation_heatmap.png' %}" alt="Correlation heatmap"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Feature Correlation Heatmap</strong>
@@ -332,7 +344,8 @@
 
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/eda/03_default_rate_by_category.png' %}" alt="Default rate by category" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/eda/03_default_rate_by_category.png' %}" alt="Default rate by category"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Categorical Default Probabilities</strong>
@@ -342,7 +355,8 @@
 
             <div class="rw-figure-card">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/eda/04_numeric_vs_default.png' %}" alt="Numeric features vs default" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/eda/04_numeric_vs_default.png' %}" alt="Numeric features vs default"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Numerical Predictors vs Default Outcome</strong>
@@ -352,7 +366,8 @@
 
             <div class="rw-figure-card rw-span-full">
                 <div class="rw-figure-img-wrapper">
-                    <img src="{% static 'images/eda/02_numeric_distributions.png' %}" alt="Numeric distributions" onerror="this.closest('.rw-figure-card').style.display='none'">
+                    <img src="{% static 'images/eda/02_numeric_distributions.png' %}" alt="Numeric distributions"
+                        onerror="this.closest('.rw-figure-card').style.display='none'">
                 </div>
                 <div class="rw-figure-caption">
                     <strong>Full Numerical Feature Distributions</strong>
@@ -366,120 +381,120 @@
 
 {{ chart_payload|json_script:"rw-analytics-data" }}
 <script>
-(function () {
-    var d = JSON.parse(document.getElementById("rw-analytics-data").textContent);
-    var GRADE_COLORS = ["#10B981", "#34D399", "#A3E635", "#F59E0B", "#F97316", "#EF4444", "#DC2626"];
+    (function () {
+        var d = JSON.parse(document.getElementById("rw-analytics-data").textContent);
+        var GRADE_COLORS = ["#10B981", "#34D399", "#A3E635", "#F59E0B", "#F97316", "#EF4444", "#DC2626"];
 
-    function modernBarChart(canvasId, dataset, customColors) {
-        var el = document.getElementById(canvasId);
-        if (!el || !dataset) return;
-        new Chart(el, {
-            type: "bar",
-            data: {
-                labels: dataset.labels,
-                datasets: [{
-                    data: dataset.values,
-                    backgroundColor: customColors || "#0EA5E9",
-                    borderRadius: 6,
-                    borderSkipped: false,
-                    barThickness: 24
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: "#0B132B",
-                        titleColor: "#FFFFFF",
-                        bodyColor: "#E2E8F0",
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: { label: function (c) { return " " + c.parsed.y + "% Default Rate"; } }
-                    }
+        function modernBarChart(canvasId, dataset, customColors) {
+            var el = document.getElementById(canvasId);
+            if (!el || !dataset) return;
+            new Chart(el, {
+                type: "bar",
+                data: {
+                    labels: dataset.labels,
+                    datasets: [{
+                        data: dataset.values,
+                        backgroundColor: customColors || "#0EA5E9",
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barThickness: 24
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: "#64748B", font: { size: 11, family: "Inter" } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#0B132B",
+                            titleColor: "#FFFFFF",
+                            bodyColor: "#E2E8F0",
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: { label: function (c) { return " " + c.parsed.y + "% Default Rate"; } }
+                        }
                     },
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: { color: "#F1F5F9" },
-                        ticks: {
-                            color: "#64748B",
-                            font: { size: 11, family: "Inter" },
-                            callback: function (v) { return v + "%"; }
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: "#64748B", font: { size: 11, family: "Inter" } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: "#F1F5F9" },
+                            ticks: {
+                                color: "#64748B",
+                                font: { size: 11, family: "Inter" },
+                                callback: function (v) { return v + "%"; }
+                            }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    if (d.insights) {
-        modernBarChart("gradeChart", d.insights.grade, GRADE_COLORS);
-        modernBarChart("intentChart", d.insights.intent, "#14B8A6");
-        modernBarChart("homeChart", d.insights.home, ["#F59E0B", "#16A34A", "#3B82F6", "#8B5CF6"]);
-        modernBarChart("prevChart", d.insights.previous, ["#16A34A", "#EF4444"]);
-    }
+        if (d.insights) {
+            modernBarChart("gradeChart", d.insights.grade, GRADE_COLORS);
+            modernBarChart("intentChart", d.insights.intent, "#14B8A6");
+            modernBarChart("homeChart", d.insights.home, ["#F59E0B", "#16A34A", "#3B82F6", "#8B5CF6"]);
+            modernBarChart("prevChart", d.insights.previous, ["#16A34A", "#EF4444"]);
+        }
 
-    if (d.has_live) {
-        new Chart(document.getElementById("liveGradeChart"), {
-            type: "bar",
-            data: {
-                labels: d.live_grade.labels,
-                datasets: [{
-                    data: d.live_grade.values,
-                    backgroundColor: "#3B82F6",
-                    borderRadius: 6,
-                    barThickness: 28
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: "#0B132B",
-                        padding: 10,
-                        callbacks: { label: function(c) { return " Avg Score: " + c.parsed.y; } }
+        if (d.has_live) {
+            new Chart(document.getElementById("liveGradeChart"), {
+                type: "bar",
+                data: {
+                    labels: d.live_grade.labels,
+                    datasets: [{
+                        data: d.live_grade.values,
+                        backgroundColor: "#3B82F6",
+                        borderRadius: 6,
+                        barThickness: 28
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#0B132B",
+                            padding: 10,
+                            callbacks: { label: function (c) { return " Avg Score: " + c.parsed.y; } }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: "#64748B" } },
+                        y: { min: 300, max: 900, grid: { color: "#F1F5F9" }, ticks: { color: "#64748B" } }
                     }
-                },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: "#64748B" } },
-                    y: { min: 300, max: 900, grid: { color: "#F1F5F9" }, ticks: { color: "#64748B" } }
                 }
-            }
-        });
+            });
 
-        new Chart(document.getElementById("liveTypeChart"), {
-            type: "bar",
-            data: {
-                labels: d.live_type.labels,
-                datasets: [
-                    { label: "Low Risk", data: d.live_type.low, backgroundColor: "#16A34A", borderRadius: 4 },
-                    { label: "Medium Risk", data: d.live_type.medium, backgroundColor: "#F59E0B", borderRadius: 4 },
-                    { label: "High Risk", data: d.live_type.high, backgroundColor: "#EF4444", borderRadius: 4 }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: "bottom", labels: { color: "#1E293B", boxWidth: 12, padding: 15 } },
-                    tooltip: { backgroundColor: "#0B132B", padding: 10 }
+            new Chart(document.getElementById("liveTypeChart"), {
+                type: "bar",
+                data: {
+                    labels: d.live_type.labels,
+                    datasets: [
+                        { label: "Low Risk", data: d.live_type.low, backgroundColor: "#16A34A", borderRadius: 4 },
+                        { label: "Medium Risk", data: d.live_type.medium, backgroundColor: "#F59E0B", borderRadius: 4 },
+                        { label: "High Risk", data: d.live_type.high, backgroundColor: "#EF4444", borderRadius: 4 }
+                    ]
                 },
-                scales: {
-                    x: { stacked: true, grid: { display: false }, ticks: { color: "#64748B" } },
-                    y: { stacked: true, beginAtZero: true, grid: { color: "#F1F5F9" }, ticks: { color: "#64748B", precision: 0 } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "bottom", labels: { color: "#1E293B", boxWidth: 12, padding: 15 } },
+                        tooltip: { backgroundColor: "#0B132B", padding: 10 }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: "#64748B" } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: "#F1F5F9" }, ticks: { color: "#64748B", precision: 0 } }
+                    }
                 }
-            }
-        });
-    }
-})();
+            });
+        }
+    })();
 </script>
 {% endblock %}

@@ -1,0 +1,189 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}Edit Profile | RiskWise Admin{% endblock %}
+
+{% block breadcrumbs %}
+<div class="rw-breadcrumb-bar">
+    <a href="{% url 'admin:index' %}"><i class="bi bi-house-door-fill"></i> Admin</a>
+    <span class="rw-bc-sep">/</span>
+    <a href="{% url 'admin:profile' %}">My Profile</a>
+    <span class="rw-bc-sep">/</span>
+    <span class="rw-bc-title">Edit Profile</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+  .edit-profile-page-admin {
+    padding: 10px 0 40px;
+  }
+  .edit-profile-card {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 18px;
+    padding: clamp(22px, 4vw, 38px);
+    box-shadow: 0 12px 35px rgba(11, 19, 43, 0.06);
+  }
+  .edit-profile-title {
+    color: #0b132b;
+    font-weight: 800;
+  }
+  .edit-profile-subtitle {
+    color: #64748b;
+  }
+  .edit-profile-avatar {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #d9f7f2;
+    color: #0f766e;
+    font-size: 26px;
+    font-weight: 800;
+    border: 2px solid #99f6e4;
+  }
+  .form-group-custom {
+    margin-bottom: 20px;
+  }
+  .form-label-custom {
+    display: block;
+    font-weight: 650;
+    color: #0b132b;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+  }
+  .form-control-custom {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dce3eb;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    color: #0b132b;
+    background: #fff;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .form-control-custom:focus {
+    outline: none;
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+  }
+  .form-text-custom {
+    display: block;
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-top: 5px;
+  }
+  .form-error-custom {
+    color: #dc2626;
+    font-size: 0.82rem;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+  .edit-save {
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 24px;
+    background: #14b8a6;
+    color: #062b35;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .edit-save:hover {
+    background: #0fa594;
+    transform: translateY(-1px);
+  }
+  .edit-cancel {
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    padding: 11px 20px;
+    color: #0b132b;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .edit-cancel:hover {
+    background: #f8fafc;
+    color: #0b132b;
+  }
+</style>
+
+<section class="edit-profile-page-admin">
+  <div class="edit-profile-card">
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 28px;">
+      <div class="edit-profile-avatar">
+        {{ request.user.full_name|default:request.user.email|first|upper }}
+      </div>
+      <div>
+        <p class="text-uppercase small fw-bold mb-1" style="color: #0f9f91; letter-spacing: 0.1em; margin: 0 0 4px; font-size: 0.75rem;">
+          ACCOUNT SETTINGS
+        </p>
+        <h1 class="h2 edit-profile-title mb-1" style="font-size: 1.55rem; margin: 0 0 4px;">Edit Profile</h1>
+        <p class="edit-profile-subtitle mb-0" style="margin: 0; font-size: 0.88rem;">
+          Update your administrative contact details below.
+        </p>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-group-custom">
+        <label for="{{ form.full_name.id_for_label }}" class="form-label-custom">
+          Full Name
+        </label>
+        <input type="text"
+               name="full_name"
+               id="{{ form.full_name.id_for_label }}"
+               class="form-control-custom"
+               value="{{ form.full_name.value|default:'' }}"
+               placeholder="Enter full name"
+               autocomplete="name"
+               required>
+        {% if form.full_name.help_text %}
+        <small class="form-text-custom">{{ form.full_name.help_text }}</small>
+        {% endif %}
+        {% if form.full_name.errors %}
+        <div class="form-error-custom">{{ form.full_name.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group-custom">
+        <label for="{{ form.email.id_for_label }}" class="form-label-custom">
+          Email Address
+        </label>
+        <input type="email"
+               name="email"
+               id="{{ form.email.id_for_label }}"
+               class="form-control-custom"
+               value="{{ form.email.value|default:'' }}"
+               placeholder="admin@riskwise.internal"
+               autocomplete="email"
+               required>
+        {% if form.email.help_text %}
+        <small class="form-text-custom">{{ form.email.help_text }}</small>
+        {% endif %}
+        {% if form.email.errors %}
+        <div class="form-error-custom">{{ form.email.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: center; margin-top: 28px;">
+        <button type="submit" class="edit-save">
+          <i class="bi bi-check2 me-1"></i> Save Changes
+        </button>
+        <a href="{% url 'admin:profile' %}" class="edit-cancel">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

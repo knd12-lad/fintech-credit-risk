@@ -85,13 +85,61 @@ class RiskWiseAdminSite(AdminSite):
     index_template = "admin/dashboard.html"
 
     # ------------------------------------------------------------------
-    # URLs
+    # URLs & Authentication
     # ------------------------------------------------------------------
     def get_urls(self):
         custom = [
             path("analytics/", self.admin_view(self.analytics_view), name="analytics"),
+            path("profile/", self.admin_view(self.profile_view), name="profile"),
+            path("profile/edit/", self.admin_view(self.profile_edit_view), name="profile_edit"),
         ]
         return custom + super().get_urls()
+
+    def profile_view(self, request):
+        """Administrative Profile view styled exactly like the main website profile page."""
+        context = {
+            **self.each_context(request),
+            "title": "My Profile",
+        }
+        return TemplateResponse(request, "admin/profile.html", context)
+
+    def profile_edit_view(self, request):
+        """Administrative Profile Edit view styled exactly like the main website edit profile page."""
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        from .forms import AdminProfileForm
+
+        if request.method == "POST":
+            form = AdminProfileForm(request.POST, instance=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Your profile has been updated successfully.")
+                return redirect("admin:profile")
+            else:
+                messages.error(request, "Please correct the errors below.")
+        else:
+            form = AdminProfileForm(instance=request.user)
+
+        context = {
+            **self.each_context(request),
+            "title": "Edit Profile",
+            "form": form,
+        }
+        return TemplateResponse(request, "admin/edit_profile.html", context)
+
+    def logout(self, request, extra_context=None):
+        """Render dedicated RiskWise admin logged out page for both GET and POST requests."""
+        from django.contrib.auth import logout
+        from django.template.response import TemplateResponse
+
+        logout(request)
+        context = {
+            **self.each_context(request),
+            "title": "Logged Out",
+            "has_permission": False,
+            **(extra_context or {}),
+        }
+        return TemplateResponse(request, self.logout_template or "admin/logged_out.html", context)
 
     # ------------------------------------------------------------------
     # Dashboard (Step 2)

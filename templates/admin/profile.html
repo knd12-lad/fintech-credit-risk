@@ -1,0 +1,317 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}My Profile | RiskWise Admin{% endblock %}
+
+{% block breadcrumbs %}
+<div class="rw-breadcrumb-bar">
+    <a href="{% url 'admin:index' %}"><i class="bi bi-house-door-fill"></i> Admin</a>
+    <span class="rw-bc-sep">/</span>
+    <span class="rw-bc-title">My Profile</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+  .profile-page-admin {
+    background: transparent;
+    padding: 10px 0 40px;
+  }
+
+  .profile-heading {
+    color: #0b132b;
+    font-weight: 800;
+  }
+
+  .profile-subtitle {
+    color: #64748b;
+  }
+
+  .profile-card {
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 12px 35px rgba(11, 19, 43, 0.06);
+    height: 100%;
+  }
+
+  .profile-sidebar {
+    background: #0b132b;
+    color: #fff;
+    border-radius: 18px;
+    padding: 30px;
+    height: 100%;
+  }
+
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    background: rgba(20, 184, 166, 0.17);
+    border: 2px solid #14b8a6;
+    color: #2dd4bf;
+    font-size: 34px;
+    font-weight: 800;
+  }
+
+  .profile-email {
+    color: #cbd5e1;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+  }
+
+  .profile-role {
+    display: inline-block;
+    background: rgba(249, 211, 66, 0.15);
+    color: #f9d342;
+    border: 1px solid rgba(249, 211, 66, 0.35);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 12px;
+  }
+
+  .profile-stat {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    padding-top: 17px;
+    margin-top: 22px;
+  }
+
+  .profile-stat-label {
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+
+  .profile-stat-value {
+    color: #fff;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-detail-icon,
+  .security-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: #e6fffb;
+    color: #0f766e;
+    font-size: 19px;
+  }
+
+  .profile-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 0;
+    border-radius: 9px;
+    padding: 12px 20px;
+    background: #14b8a6;
+    color: #062b35;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .profile-action:hover {
+    background: #0fa594;
+    color: #062b35;
+    transform: translateY(-1px);
+  }
+
+  .security-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    color: #0b132b;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .security-link:hover {
+    border-color: #14b8a6;
+    background: #f0fdfa;
+    color: #0b132b;
+  }
+
+  .profile-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .profile-row {
+      grid-template-columns: 1fr;
+    }
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<section class="profile-page-admin">
+    <!-- Page Heading -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px;">
+      <div>
+        <p class="text-uppercase small fw-bold mb-2" style="color: #0f9f91; letter-spacing: 0.12em; margin-bottom: 6px; font-size: 0.8rem; font-weight: 700;">
+          YOUR ACCOUNT
+        </p>
+
+        <h1 class="profile-heading mb-2" style="font-size: 1.85rem; margin: 0 0 6px;">My Profile</h1>
+
+        <p class="profile-subtitle mb-0" style="margin: 0; font-size: 0.95rem;">
+          View your RiskWise account information and security settings.
+        </p>
+      </div>
+
+      <a class="profile-action" href="{% url 'admin:profile_edit' %}">
+        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+        Edit Profile
+      </a>
+    </div>
+
+    <!-- Row with 2 Columns matching Public Profile -->
+    <div class="profile-row">
+
+      <!-- Left: Col-lg-4 (Dark Navy Card) -->
+      <div>
+        <section class="profile-sidebar">
+
+          <div style="text-align: center;">
+            <div class="profile-avatar">
+              {{ request.user.full_name|default:request.user.email|first|upper }}
+            </div>
+
+            <h2 class="h4 fw-bold mb-2" style="font-size: 1.3rem; margin: 0 0 8px; color: #FFFFFF;">
+              {{ request.user.full_name|default:"Administrator" }}
+            </h2>
+
+            <div class="profile-email">
+              {{ request.user.email }}
+            </div>
+
+            <span class="profile-role">
+              {% if request.user.is_superuser %}Super Admin{% else %}{{ request.user.get_role_display|default:"Admin" }}{% endif %}
+            </span>
+          </div>
+
+          <div class="profile-stat">
+            <div class="profile-stat-label">Account created</div>
+            <div class="profile-stat-value mt-1" style="margin-top: 4px;">
+              {{ request.user.date_joined|date:"d M Y" }}
+            </div>
+          </div>
+
+          <div class="profile-stat">
+            <div class="profile-stat-label">Account status</div>
+            <div class="profile-stat-value mt-1" style="margin-top: 4px;">
+              {% if request.user.is_active %}
+                <i class="bi bi-check-circle-fill text-success me-1" style="color: #10B981 !important;"></i>
+                Active
+              {% else %}
+                <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
+                Inactive
+              {% endif %}
+            </div>
+          </div>
+
+        </section>
+      </div>
+
+      <!-- Right: Col-lg-8 (White Card) -->
+      <div>
+        <section class="profile-card">
+
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
+            <div class="profile-detail-icon">
+              <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            </div>
+
+            <div>
+              <h2 class="h4 profile-heading mb-1" style="font-size: 1.25rem; margin: 0 0 4px;">
+                Personal Information
+              </h2>
+              <p class="text-secondary mb-0" style="color: #64748B; margin: 0; font-size: 0.88rem;">
+                Your saved account details.
+              </p>
+            </div>
+          </div>
+
+          <div class="detail-grid">
+            <div>
+              <div style="font-size: 0.8rem; color: #64748B; margin-bottom: 4px; font-weight: 500;">Full Name</div>
+              <div style="font-weight: 600; color: #0B132B; word-break: break-word; font-size: 0.95rem;">
+                {{ request.user.full_name|default:"Not provided" }}
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.8rem; color: #64748B; margin-bottom: 4px; font-weight: 500;">Email Address</div>
+              <div style="font-weight: 600; color: #0B132B; word-break: break-word; font-size: 0.95rem;">
+                {{ request.user.email }}
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.8rem; color: #64748B; margin-bottom: 4px; font-weight: 500;">Account Role</div>
+              <div style="font-weight: 600; color: #0B132B; font-size: 0.95rem;">
+                {% if request.user.is_superuser %}Super Admin{% else %}{{ request.user.get_role_display|default:"Admin" }}{% endif %}
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.8rem; color: #64748B; margin-bottom: 4px; font-weight: 500;">Account Status</div>
+              <div style="font-weight: 600; color: #0B132B; font-size: 0.95rem;">
+                {% if request.user.is_active %}Active{% else %}Inactive{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 24px 0;">
+
+          <!-- Account Security -->
+          <h2 class="h5 profile-heading mb-3" style="font-size: 1.1rem; margin-bottom: 14px;">
+            Account Security
+          </h2>
+
+          <a href="{% url 'admin:password_change' %}" class="security-link">
+            <div class="security-icon">
+              <i class="bi bi-shield-lock" aria-hidden="true"></i>
+            </div>
+
+            <div style="flex-grow: 1;">
+              <div style="font-weight: 700; color: #0B132B; font-size: 0.95rem;">Change Password</div>
+              <small style="color: #64748B; font-size: 0.82rem;">
+                Update your account password securely.
+              </small>
+            </div>
+
+            <i class="bi bi-chevron-right" aria-hidden="true" style="color: #94A3B8;"></i>
+          </a>
+
+        </section>
+      </div>
+
+    </div>
+</section>
+{% endblock %}

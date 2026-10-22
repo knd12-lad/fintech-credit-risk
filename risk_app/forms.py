@@ -190,3 +190,46 @@ class EditProfileForm(BootstrapFormMixin, forms.ModelForm):
         if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("This email address is already registered.")
         return email
+
+
+class AdminProfileForm(BootstrapFormMixin, forms.ModelForm):
+    """Allow administrative users to edit their profile information from the Admin Hub."""
+
+    class Meta:
+        model = User
+        fields = ("full_name", "email")
+        widgets = {
+            "full_name": forms.TextInput(attrs={
+                "placeholder": "Enter full administrator name",
+                "autocomplete": "name",
+                "maxlength": "100",
+            }),
+            "email": forms.EmailInput(attrs={
+                "placeholder": "admin@riskwise.internal",
+                "autocomplete": "email",
+                "maxlength": "254",
+            }),
+        }
+        labels = {
+            "full_name": "Administrator Full Name",
+            "email": "Administrative Email (Username)",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["full_name"].help_text = "Displayed across administrative audit trails and reports."
+        self.fields["email"].help_text = "Used for authentication to the RiskWise Admin Portal."
+
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get("full_name", "").strip()
+        if not full_name:
+            raise forms.ValidationError("Administrator full name cannot be empty.")
+        return full_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email", "").strip().lower()
+        if not email:
+            raise forms.ValidationError("Email address is required.")
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("An account with this email address already exists.")
+        return email

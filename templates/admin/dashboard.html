@@ -109,9 +109,7 @@
                 <span class="rw-badge-live"><i class="bi bi-record-fill"></i> Model Calibrated</span>
             </div>
             <div class="rw-doughnut-wrapper">
-                <div class="rw-chart-canvas-box">
-                    <canvas id="riskDoughnutChart"></canvas>
-                </div>
+                <canvas id="riskDoughnutChart"></canvas>
             </div>
             <div class="rw-legend-bar">
                 <div class="rw-legend-pill rw-pill-low">
@@ -234,42 +232,6 @@
     </div>
     {% endif %}
 
-    <!-- Operations Quick Hub -->
-    <div class="rw-quick-hub">
-        <a href="{% url 'admin:risk_app_loanapplication_changelist' %}" class="rw-hub-card">
-            <div class="rw-hub-icon icon-cyan"><i class="bi bi-file-earmark-person"></i></div>
-            <div>
-                <div class="rw-hub-title">Loan Applicants</div>
-                <div class="rw-hub-desc">Review full borrower applications, employment length & income data</div>
-            </div>
-            <i class="bi bi-arrow-right rw-hub-arrow"></i>
-        </a>
-        <a href="{% url 'admin:risk_app_prediction_changelist' %}" class="rw-hub-card">
-            <div class="rw-hub-icon icon-teal"><i class="bi bi-shield-check"></i></div>
-            <div>
-                <div class="rw-hub-title">Export Predictions</div>
-                <div class="rw-hub-desc">Generate compliance-ready CSV exports with full feature attribution</div>
-            </div>
-            <i class="bi bi-arrow-right rw-hub-arrow"></i>
-        </a>
-        <a href="{% url 'admin:risk_app_user_changelist' %}" class="rw-hub-card">
-            <div class="rw-hub-icon icon-blue"><i class="bi bi-people"></i></div>
-            <div>
-                <div class="rw-hub-title">User Accounts</div>
-                <div class="rw-hub-desc">Manage system access, borrower roles and portal authentication</div>
-            </div>
-            <i class="bi bi-arrow-right rw-hub-arrow"></i>
-        </a>
-        <a href="{% url 'admin:analytics' %}" class="rw-hub-card">
-            <div class="rw-hub-icon icon-purple"><i class="bi bi-cpu"></i></div>
-            <div>
-                <div class="rw-hub-title">Model Performance</div>
-                <div class="rw-hub-desc">Explore ROC curves, confusion matrix and feature importances</div>
-            </div>
-            <i class="bi bi-arrow-right rw-hub-arrow"></i>
-        </a>
-    </div>
-
 </div>
 
 {% if has_data %}
@@ -278,10 +240,12 @@
 (function () {
     var d = JSON.parse(document.getElementById("rw-dash-data").textContent);
 
+    window.rwCharts = [];
+
     // Modern Doughnut Chart
     var doughnutCtx = document.getElementById("riskDoughnutChart");
     if (doughnutCtx) {
-        new Chart(doughnutCtx, {
+        var doughnutChart = new Chart(doughnutCtx, {
             type: "doughnut",
             data: {
                 labels: ["Low Risk", "Medium Risk", "High Risk"],
@@ -297,7 +261,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: "74%",
+                cutout: "70%",
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -310,6 +274,7 @@
                 }
             }
         });
+        window.rwCharts.push(doughnutChart);
     }
 
     // Modern Curved Area Chart
@@ -319,7 +284,7 @@
         gradient.addColorStop(0, "rgba(20, 184, 166, 0.28)");
         gradient.addColorStop(1, "rgba(20, 184, 166, 0.0)");
 
-        new Chart(trendCtx, {
+        var trendChart = new Chart(trendCtx, {
             type: "line",
             data: {
                 labels: d.days,
@@ -341,6 +306,14 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        right: 14,
+                        left: 4,
+                        top: 8,
+                        bottom: 4
+                    }
+                },
                 scales: {
                     x: {
                         grid: { color: "#F1F5F9" },
@@ -364,6 +337,22 @@
                 }
             }
         });
+        window.rwCharts.push(trendChart);
+    }
+
+    // ResizeObserver ensures graphs resize instantly & accurately on any sidebar toggle
+    if (window.ResizeObserver) {
+        var chartGrid = document.querySelector(".rw-charts-grid");
+        if (chartGrid) {
+            var ro = new ResizeObserver(function() {
+                window.rwCharts.forEach(function(c) {
+                    if (c && typeof c.resize === "function") {
+                        c.resize();
+                    }
+                });
+            });
+            ro.observe(chartGrid);
+        }
     }
 
     // Set probability bar widths cleanly without CSS linter errors
