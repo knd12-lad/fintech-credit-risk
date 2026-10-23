@@ -15,11 +15,11 @@ Positioned horizontally across the top (`Y: 90px`, `Height: 110px`):
 
 | KPI Card | Measure | Display Format | Expected Initial Value | Visual Style |
 | :--- | :--- | :--- | :--- | :--- |
-| **Card 1** | `[Total Applications]` | Whole Number (`#,##0`) | **202** | Dark Blue Callout |
-| **Card 2** | `[Predicted High-Risk Percentage]` | Percentage (`0.0%`) | **59.9%** | Red Callout (`#EF4444`) |
-| **Card 3** | `[Average Credit Score]` | Whole Number (`###`) | **536** | Teal Callout (`#14B8A6`) |
-| **Card 4** | `[High-Risk Count]` | Whole Number (`#,##0`) | **121** | Amber/Red Callout |
-| **Card 5** | `[Total Loan Volume]` | Currency (`$#,##0`) | **$2,165,850** | Slate Callout |
+| **Card 1** | `[Total Applications]` | Whole Number (`#,##0`) | **205** | Dark Blue Callout |
+| **Card 2** | `[Predicted High-Risk Percentage]` | Percentage (`0.0%`) | **16.6%** | Red Callout (`#EF4444`) |
+| **Card 3** | `[Average Credit Score]` | Whole Number (`###`) | **768** | Teal Callout (`#14B8A6`) |
+| **Card 4** | `[High-Risk Count]` | Whole Number (`#,##0`) | **34** | Amber/Red Callout |
+| **Card 5** | `[Total Loan Volume]` | Currency (`$#,##0`) | **$2,863,275** | Slate Callout |
 
 ---
 
@@ -31,15 +31,15 @@ Positioned horizontally across the top (`Y: 90px`, `Height: 110px`):
 - **Legend / Slices**: `'RiskWise_Portfolio'[risk_level]`
 - **Values**: `[Total Applications]`
 - **Color Palette**:
-  - `Low`: Green (`#16A34A` / `#10B981`) -> **75 records (37.1%)**
-  - `Medium`: Amber (`#F59E0B`) -> **6 records (3.0%)**
-  - `High`: Red (`#EF4444`) -> **121 records (59.9%)**
+  - `Low`: Green (`#16A34A` / `#10B981`) -> **153 records (74.6%)**
+  - `Medium`: Amber (`#F59E0B`) -> **18 records (8.8%)**
+  - `High`: Red (`#EF4444`) -> **34 records (16.6%)**
 - **Data Labels**: Category + Percentage of Total
 
 ### Visual 2: Loan Purpose Breakdown (Clustered Column Chart)
 - **Location**: Top-Right quadrant (`Width: 620px`, `Height: 340px`)
 - **Title**: "Loan Assessment Volume by Loan Purpose"
-- **X-Axis**: `'RiskWise_Portfolio'[loan_intent_name]` (Education, Medical, Venture, Personal, Home Improvement, Debt Consolidation)
+- **X-Axis**: `'RiskWise_Portfolio'[loan_intent_name]` (Education [43], Venture [39], Medical [35], Personal [35], Debt Consolidation [33], Home Improvement [20])
 - **Y-Axis**: `[Total Applications]`
 - **Data Callouts**: Show Value on Data Labels
 - **Bar Color**: RiskWise Navy/Teal (`#0E7490`)
@@ -57,7 +57,7 @@ Positioned horizontally across the top (`Y: 90px`, `Height: 110px`):
 Positioned in a designated filter rail or top bar:
 1. **Data Type Slicer**:
    - Field: `'RiskWise_Portfolio'[is_demo]`
-   - Options: `All`, `Demo` (200 records), `Real` (2 records)
+   - Options: `All` (205 records), `Demo` (200 records), `Real` (5 records)
    - Behavior: Allows auditing synthetic demo benchmarks vs. real live portal submissions.
 2. **Loan Grade Slicer**:
-   - Field: `'RiskWise_Portfolio'[loan_grade]` (Buttons A through G)
+   - Field: `'RiskWise_Portfolio'[loan_grade]` (Buttons A, B, C, D, E, G; Grade F has 0 records)

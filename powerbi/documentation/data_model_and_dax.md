@@ -85,17 +85,18 @@ To enable structured multi-dimensional analysis on Page 2 and Page 3, categorica
 
 All measures utilize safe division (`DIVIDE`) to prevent `#DIV/0!` errors.
 
-| Measure Name | DAX Expression | Interpretation | Baseline Value (202 Records) |
+| Measure Name | DAX Expression | Interpretation | Baseline Value (205 Records) |
 | :--- | :--- | :--- | :--- |
-| **Total Applications** | `COUNTROWS('RiskWise_Portfolio')` | Total loan assessment requests | **202** |
-| **Demo Records Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[is_demo] = "Demo")` | Clearly labeled synthetic demo entries | **200** |
-| **Real Records Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[is_demo] = "Real")` | Genuine portal user submissions | **2** |
-| **High-Risk Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "High")` | Borrowers evaluated as High Risk (Score < 600) | **121** (59.9%) |
-| **Medium-Risk Count**| `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "Medium")`| Borrowers evaluated as Medium Risk (600 <= Score < 780)| **6** (3.0%) |
-| **Low-Risk Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "Low")` | Borrowers evaluated as Low Risk (Score >= 780) | **75** (37.1%) |
-| **Average Credit Score**| `AVERAGE('RiskWise_Portfolio'[credit_score])` | Mean custom credit score (Scale 300 to 900) | **536.2** |
-| **Average Default Prob**| `AVERAGE('RiskWise_Portfolio'[default_probability])` | Mean statistical probability of loan default (0-1) | **60.65%** |
-| **Predicted High-Risk %**| `DIVIDE([High-Risk Count], [Total Applications], 0)` | Proportion of portfolio classified as High Risk | **59.90%** |
+| **Total Applications** | `COUNTROWS('RiskWise_Portfolio')` | Total loan assessment requests | **205** |
+| **Total Loan Volume** | `SUM('RiskWise_Portfolio'[loan_amount])` | Total loan portfolio volume | **$2,863,275** |
+| **Demo Records Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[is_demo] = "Demo")` | Clearly labeled synthetic demo entries | **200** (97.6%) |
+| **Real Records Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[is_demo] = "Real")` | Genuine portal user submissions | **5** (2.4%) |
+| **High-Risk Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "High")` | Borrowers evaluated as High Risk (Score < 600) | **34** (16.6%) |
+| **Medium-Risk Count**| `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "Medium")`| Borrowers evaluated as Medium Risk (600 <= Score < 780)| **18** (8.8%) |
+| **Low-Risk Count** | `CALCULATE(COUNTROWS('RiskWise_Portfolio'), 'RiskWise_Portfolio'[risk_level] = "Low")` | Borrowers evaluated as Low Risk (Score >= 780) | **153** (74.6%) |
+| **Average Credit Score**| `AVERAGE('RiskWise_Portfolio'[credit_score])` | Mean custom credit score (Scale 300 to 900) | **767.8** |
+| **Average Default Prob**| `AVERAGE('RiskWise_Portfolio'[default_probability])` | Mean statistical probability of loan default (0-1) | **22.04%** |
+| **Predicted High-Risk %**| `DIVIDE([High-Risk Count], [Total Applications], 0)` | Proportion of portfolio classified as High Risk | **16.59%** |
 
 > [!IMPORTANT]
 > **Interpretation Rule**: "Predicted High-Risk Percentage" represents the machine learning model's output probability assessment based on applicant financial features. It must NEVER be conflated with an observed historical loan loss / default rate.

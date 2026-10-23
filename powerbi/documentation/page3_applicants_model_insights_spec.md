@@ -4,7 +4,10 @@
 Page 3 provides granular scoring analysis, feature interaction visualizations, and an anonymized compliance-grade audit table.
 
 > [!CAUTION]
-> **Data Privacy Guarantee**: In strict compliance with Non-Negotiable Rule 5 & 6, this dashboard view displays **NO personal email addresses, passwords, phone numbers, or actual applicant PII**. Identifiers use synthetic labels (`Demo Applicant #XXX` or `User #X`).
+> **Data Privacy Guarantee**: In strict compliance with privacy standards, this dashboard view displays **NO personal email addresses, passwords, phone numbers, or actual applicant PII**. Identifiers use synthetic labels (`Demo Applicant #XXX` or `User #X`).
+
+> [!NOTE]
+> **Manual Build Required**: The `.pbix` project file and dashboard screenshots are to be created manually in Power BI Desktop using the instructions in Section 4.
 
 ---
 
@@ -19,7 +22,13 @@ Page 3 provides granular scoring analysis, feature interaction visualizations, a
 ### Visual 1: Custom Credit Score Distribution (Histogram / Clustered Column)
 - **Title**: "Credit Risk Score Distribution (Scale 300 - 900)"
 - **X-Axis**: Grouped Score Bins (`300-399`, `400-499`, `500-599`, `600-699`, `700-799`, `800-900`)
-- **Y-Axis**: `[Total Applications]`
+  - `300-399`: **31 records** (Subprime / Elevated risk)
+  - `400-499`: **2 records**
+  - `500-599`: **1 record**
+  - `600-699`: **6 records** (Near-prime)
+  - `700-799`: **16 records** (Prime)
+  - `800-900`: **149 records** (Super-prime)
+- **Y-Axis**: `[Total Applications]` (Total: 205)
 - **Color Accent**: Teal `#14B8A6`
 
 ### Visual 2: Predicted Default Probability Distribution (Scatter or Area)
@@ -39,7 +48,7 @@ Page 3 provides granular scoring analysis, feature interaction visualizations, a
 
 ### Visual 4: Applicant Detail & Audit Table
 - **Columns Included**:
-  1. `applicant_label`: (e.g., `Demo Applicant #042`)
+  1. `applicant_label`: (e.g., `Demo Applicant #042` or `User #4`)
   2. `is_demo`: (`Demo` / `Real`)
   3. `loan_grade`: (e.g., `B`)
   4. `loan_intent_name`: (e.g., `Medical`)
@@ -53,13 +62,15 @@ Page 3 provides granular scoring analysis, feature interaction visualizations, a
 ---
 
 ## 4. Manual Recreation Recipe in Power BI Desktop
-1. Open **Power BI Desktop** (`PBIDesktopStore.exe`).
+1. Open **Power BI Desktop** (`PBIDesktopStore.exe` or standalone installer).
 2. Click **Get Data** -> **Text/CSV** -> Select `c:\fintech-credit-risk\powerbi\data\riskwise_powerbi_dataset.csv`.
-3. In Power Query editor, verify data types (Decimals for currency, Integers for scores/age). Click **Close & Apply**.
-4. In the Modeling tab, create a **New Measure** and paste the expressions from `powerbi/dax/measures.dax`.
-5. Recreate the 3 visual pages following Page 1, Page 2, and Page 3 specs.
-6. Click **File -> Save As** -> Save to `c:\fintech-credit-risk\powerbi\RiskWise_Dashboard.pbix`.
-7. Export / capture screenshots of each page and save into:
+3. In Power Query editor, verify data types (Decimals for currency/percentages, Integers for scores/age). Click **Close & Apply**.
+4. In the **View** tab -> **Themes** -> **Browse for themes**, select `c:\fintech-credit-risk\powerbi\RiskWise_Theme.json`.
+5. In the Modeling tab, create a **New Measure** and paste the expressions from `powerbi/dax/measures.dax`.
+6. Add the calculated column `Income Tier Sorted` defined in `powerbi/dax/measures.dax`.
+7. Recreate the 3 visual pages following Page 1, Page 2, and Page 3 specs.
+8. Click **File -> Save As** -> Save to `c:\fintech-credit-risk\powerbi\RiskWise_Dashboard.pbix`.
+9. Export / capture screenshots of each page and save into:
    - `powerbi/screenshots/overview/page1_overview.png`
    - `powerbi/screenshots/default_analysis/page2_default_analysis.png`
    - `powerbi/screenshots/applicants_model_insights/page3_applicants_model_insights.png`

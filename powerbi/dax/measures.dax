@@ -83,6 +83,9 @@ Average Default Probability Pct =
 Total Loan Portfolio Volume = 
 SUM('RiskWise_Portfolio'[loan_amount])
 
+Total Loan Volume = 
+SUM('RiskWise_Portfolio'[loan_amount])
+
 Average Loan Amount = 
 AVERAGE('RiskWise_Portfolio'[loan_amount])
 
@@ -94,3 +97,17 @@ AVERAGE('RiskWise_Portfolio'[interest_rate])
 
 Average Debt-to-Income = 
 AVERAGE('RiskWise_Portfolio'[loan_to_income])
+
+// -----------------------------------------------------------------------------
+// 5. CALCULATED COLUMNS (Data Model Enrichment)
+// -----------------------------------------------------------------------------
+
+Income Tier Sorted = 
+SWITCH(TRUE(),
+    'RiskWise_Portfolio'[annual_income] < 25000,  "1) < $25k",
+    'RiskWise_Portfolio'[annual_income] < 50000,  "2) $25k - $50k",
+    'RiskWise_Portfolio'[annual_income] < 75000,  "3) $50k - $75k",
+    'RiskWise_Portfolio'[annual_income] < 100000, "4) $75k - $100k",
+    "5) > $100k"
+)
+

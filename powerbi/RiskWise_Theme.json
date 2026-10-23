@@ -1,0 +1,52 @@
+{
+  "name": "RiskWise",
+  "dataColors": [
+    "#0E7490",
+    "#14B8A6",
+    "#F59E0B",
+    "#EF4444",
+    "#16A34A",
+    "#1E3A8A",
+    "#475569",
+    "#0B132B"
+  ],
+  "background": "#F3F5F9",
+  "foreground": "#1E293B",
+  "tableAccent": "#14B8A6",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#E2E8F0" } },
+            "radius": 8
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#FFFFFF" } }
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": { "solid": { "color": "#E2E8F0" } },
+            "radius": 8
+          }
+        ]
+      }
+    }
+  }
+}
