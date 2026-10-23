@@ -568,4 +568,18 @@ class RiskWiseMasterTestSuite(TestCase):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    # -------------------------------------------------------------------------
+    # TEST 21: Staff user can access /admin/risk_app/ app index
+    # -------------------------------------------------------------------------
+    def test_21_admin_app_index_page(self):
+        """
+        Verify that a staff user GET /admin/risk_app/ returns 200
+        and the content contains 'Loan applications'.
+        """
+        self.client.force_login(self.admin_user)
+        res = self.client.get("/admin/risk_app/")
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Loan applications")
+
+
 

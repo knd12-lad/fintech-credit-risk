@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if app_list %}{{ app_list.0.name }}{% else %}{{ title }}{% endif %} | RiskWise Admin{% endblock %}
+
+{% block breadcrumbs %}
+<div class="rw-breadcrumb-bar">
+    <a href="{% url 'admin:index' %}"><i class="bi bi-house-door-fill"></i> Home</a>
+    <span class="rw-bc-sep">/</span>
+    <span class="rw-bc-title">{% if app_list %}{{ app_list.0.name }}{% else %}{{ title }}{% endif %}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="rw-dashboard-container">
+    <div class="rw-hero-banner" style="margin-bottom: 24px;">
+        <div class="rw-hero-text">
+            <h1>{% if app_list %}{{ app_list.0.name }}{% else %}{{ title }}{% endif %}</h1>
+            <p>Manage data models, loan parameters, and operational records for this application.</p>
+        </div>
+    </div>
+
+    {% if app_list %}
+        {% for app in app_list %}
+        <div class="rw-app-models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px;">
+            {% for model in app.models %}
+            <div class="rw-metric-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; padding: 20px;">
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 1.08rem; font-weight: 700; color: var(--rx-text-dark);">
+                            {{ model.name }}
+                        </h3>
+                        <span class="rw-nav-badge rw-badge-teal" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; background: var(--rx-teal-soft); color: var(--rx-teal-dark); font-weight: 600;">
+                            Model
+                        </span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 18px;">
+                    {% if model.admin_url %}
+                    <a href="{{ model.admin_url }}" class="rw-btn rw-btn-primary" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">
+                        {% if model.view_only %}
+                            <i class="bi bi-eye"></i> View
+                        {% else %}
+                            <i class="bi bi-pencil-square"></i> Change
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                    {% if model.add_url %}
+                    <a href="{{ model.add_url }}" class="rw-btn rw-btn-glass" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">
+                        <i class="bi bi-plus-lg"></i> Add
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="rw-metric-card" style="padding: 24px;">
+            <p style="margin: 0; color: var(--rx-muted);">You do not have permission to view or edit any models in this application.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
