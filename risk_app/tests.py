@@ -402,6 +402,7 @@ class RiskWiseMasterTestSuite(TestCase):
     def test_16_admin_only_functionality_restricted(self):
         # Regular user cannot access Django admin
         self.client.force_login(self.user1)
+        self.client.cookies["rw_admin_sessionid"] = self.client.cookies[settings.SESSION_COOKIE_NAME].value
         res_regular = self.client.get(reverse("admin:index"))
         self.assertIn(
             res_regular.status_code,
@@ -411,6 +412,7 @@ class RiskWiseMasterTestSuite(TestCase):
 
         # Admin user can access Django admin
         self.client.force_login(self.admin_user)
+        self.client.cookies["rw_admin_sessionid"] = self.client.cookies[settings.SESSION_COOKIE_NAME].value
         res_admin = self.client.get(reverse("admin:index"))
         self.assertEqual(res_admin.status_code, 200)
 
@@ -578,6 +580,7 @@ class RiskWiseMasterTestSuite(TestCase):
         and the content contains 'Loan applications'.
         """
         self.client.force_login(self.admin_user)
+        self.client.cookies["rw_admin_sessionid"] = self.client.cookies[settings.SESSION_COOKIE_NAME].value
         res = self.client.get("/admin/risk_app/")
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Loan applications")
@@ -659,6 +662,140 @@ class RiskWiseMasterTestSuite(TestCase):
             self.assertEqual(res_fail.status_code, 200)
             self.assertTrue(ContactMessage.objects.filter(email="fallback@example.com").exists())
             self.assertContains(res_fail, "Your message has been submitted successfully!")
+
+    # -------------------------------------------------------------------------
+    # TEST 24: Staff login on admin does not authenticate public website
+    # -------------------------------------------------------------------------
+    def test_24_staff_login_admin_does_not_authenticate_website(self):
+        """
+        4.4a: Staff login through the admin login URL, then GET '/' ->
+        context user is NOT authenticated on the public website.
+        """
+        client = Client()
+        login_res = client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        self.assertEqual(login_res.status_code, 302)
+        self.assertIn("rw_admin_sessionid", client.cookies)
+
+        res_home = client.get(reverse("home"))
+        self.assertEqual(res_home.status_code, 200)
+        self.assertFalse(res_home.context["user"].is_authenticated)
+
+    # -------------------------------------------------------------------------
+    # TEST 25: Dual portal sessions coexist simultaneously in same client
+    # -------------------------------------------------------------------------
+    def test_25_dual_portal_sessions_coexist_in_same_client(self):
+        """
+        4.4b: Normal user logged in on website and staff logged in on admin
+        in the same client -> both stay logged in on their own side.
+        """
+        client = Client()
+        # Normal user logs in on website
+        user_login = client.post(
+            reverse("login"),
+            {"username": self.user1.email, "password": "StrongPassword123!"},
+        )
+        self.assertEqual(user_login.status_code, 302)
+        self.assertIn(settings.SESSION_COOKIE_NAME, client.cookies)
+
+        # Staff logs in on admin
+        admin_login = client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        self.assertEqual(admin_login.status_code, 302)
+        self.assertIn("rw_admin_sessionid", client.cookies)
+
+        # Website request -> user1 is authenticated
+        res_home = client.get(reverse("home"))
+        self.assertEqual(res_home.status_code, 200)
+        self.assertTrue(res_home.context["user"].is_authenticated)
+        self.assertEqual(res_home.context["user"].email, self.user1.email)
+
+        # Admin request -> admin_user is authenticated
+        res_admin = client.get("/admin/")
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertTrue(res_admin.context["user"].is_authenticated)
+        self.assertEqual(res_admin.context["user"].email, self.admin_user.email)
+
+    # -------------------------------------------------------------------------
+    # TEST 26: Logout on one side does not log out the other side
+    # -------------------------------------------------------------------------
+    def test_26_logout_isolation_between_admin_and_website(self):
+        """
+        4.4c: Logout on one side does not log out the other side.
+        """
+        client = Client()
+        client.post(
+            reverse("login"),
+            {"username": self.user1.email, "password": "StrongPassword123!"},
+        )
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+
+        # Logout from website
+        logout_site = client.post(reverse("logout"))
+        self.assertIn(logout_site.status_code, (200, 302))
+
+        # Website should now be logged out
+        res_home = client.get(reverse("home"))
+        self.assertFalse(res_home.context["user"].is_authenticated)
+
+        # Admin must STILL be logged in!
+        res_admin = client.get("/admin/")
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertTrue(res_admin.context["user"].is_authenticated)
+        self.assertEqual(res_admin.context["user"].email, self.admin_user.email)
+
+        # Now log user back in, and logout from admin
+        client.post(
+            reverse("login"),
+            {"username": self.user1.email, "password": "StrongPassword123!"},
+        )
+        logout_admin = client.post("/admin/logout/")
+        self.assertIn(logout_admin.status_code, (200, 302))
+
+        # Admin should now redirect to login or be logged out
+        res_admin_after = client.get("/admin/")
+        self.assertIn(res_admin_after.status_code, (200, 302))
+        if res_admin_after.status_code == 200 and "user" in res_admin_after.context:
+            self.assertFalse(res_admin_after.context["user"].is_authenticated)
+
+        # Website user must STILL be logged in!
+        res_home_after = client.get(reverse("home"))
+        self.assertTrue(res_home_after.context["user"].is_authenticated)
+        self.assertEqual(res_home_after.context["user"].email, self.user1.email)
+
+    # -------------------------------------------------------------------------
+    # TEST 27: Session cookie names isolation
+    # -------------------------------------------------------------------------
+    def test_27_session_cookie_names_isolation(self):
+        """
+        4.4d: The admin response sets 'rw_admin_sessionid'; the website response
+        sets the normal session cookie, never the other way around.
+        """
+        admin_client = Client()
+        admin_res = admin_client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        self.assertEqual(admin_res.status_code, 302)
+        self.assertIn("rw_admin_sessionid", admin_res.cookies)
+        self.assertNotIn(settings.SESSION_COOKIE_NAME, admin_res.cookies)
+
+        user_client = Client()
+        user_res = user_client.post(
+            reverse("login"),
+            {"username": self.user1.email, "password": "StrongPassword123!"},
+        )
+        self.assertEqual(user_res.status_code, 302)
+        self.assertIn(settings.SESSION_COOKIE_NAME, user_res.cookies)
+        self.assertNotIn("rw_admin_sessionid", user_res.cookies)
+
 
 
 
