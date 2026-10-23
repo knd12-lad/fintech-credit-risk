@@ -1,7 +1,10 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import LoanType
 from .models import User
+
+CURRENCY_SYMBOL = getattr(settings, "CURRENCY_SYMBOL", "$")
 
 
 class BootstrapFormMixin:
@@ -78,11 +81,11 @@ class RiskCheckerForm(BootstrapFormMixin, forms.Form):
     )
 
     person_income = forms.DecimalField(
-        label="Annual Income (₹)",
+        label=f"Annual Income ({CURRENCY_SYMBOL})",
         min_value=1,
         max_digits=12,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={"placeholder": "e.g. 600000"})
+        widget=forms.NumberInput(attrs={"placeholder": "e.g. 60000"})
     )
 
     person_emp_length = forms.FloatField(
@@ -108,11 +111,11 @@ class RiskCheckerForm(BootstrapFormMixin, forms.Form):
     )
 
     loan_amnt = forms.DecimalField(
-        label="Loan Amount (₹)",
+        label=f"Loan Amount ({CURRENCY_SYMBOL})",
         min_value=1,
         max_digits=12,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={"placeholder": "e.g. 200000"})
+        widget=forms.NumberInput(attrs={"placeholder": "e.g. 20000"})
     )
 
     loan_int_rate = forms.FloatField(

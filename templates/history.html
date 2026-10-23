@@ -1,5 +1,6 @@
 
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}My History | RiskWise{% endblock %}
 
@@ -51,7 +52,7 @@
                                     </td>
 
                                     <td>
-                                        ₹{{ application.loan_amount|floatformat:2 }}
+                                        {{ CURRENCY_SYMBOL|default:"$" }}{{ application.loan_amount|floatformat:0|intcomma }}
                                     </td>
 
                                     <td>

@@ -1,5 +1,6 @@
 
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Prediction Result | RiskWise{% endblock %}
 
@@ -58,7 +59,22 @@
     }
 
     .risk-icon {
-        color: #DC2626;
+        color: var(--rx-high);
+        background: #FEE2E2;
+    }
+
+    .risk-icon.risk-icon-low {
+        color: var(--rx-low);
+        background: #D1FAE5;
+    }
+
+    .risk-icon.risk-icon-medium {
+        color: var(--rx-medium);
+        background: #FEF3C7;
+    }
+
+    .risk-icon.risk-icon-high {
+        color: var(--rx-high);
         background: #FEE2E2;
     }
 
@@ -419,7 +435,7 @@
                 <div class="card result-card">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="result-icon risk-icon">
+                            <div class="result-icon risk-icon {% if application.prediction.risk_level == 'High' %}risk-icon-high{% elif application.prediction.risk_level == 'Medium' %}risk-icon-medium{% else %}risk-icon-low{% endif %}">
                                 <i class="bi bi-shield-exclamation"></i>
                             </div>
 
@@ -498,10 +514,10 @@
                         </div>
 
                         <div class="detail-row">
-                            <i class="bi bi-currency-rupee detail-icon"></i>
+                            <i class="bi bi-currency-dollar detail-icon"></i>
                             <span class="detail-label">Loan Amount</span>
                             <span class="detail-value">
-                                ₹{{ application.loan_amount|floatformat:2 }}
+                                {{ CURRENCY_SYMBOL|default:"$" }}{{ application.loan_amount|floatformat:0|intcomma }}
                             </span>
                         </div>
 
@@ -509,7 +525,7 @@
                             <i class="bi bi-cash-stack detail-icon"></i>
                             <span class="detail-label">Annual Income</span>
                             <span class="detail-value">
-                                ₹{{ application.annual_income|floatformat:2 }}
+                                {{ CURRENCY_SYMBOL|default:"$" }}{{ application.annual_income|floatformat:0|intcomma }}
                             </span>
                         </div>
 

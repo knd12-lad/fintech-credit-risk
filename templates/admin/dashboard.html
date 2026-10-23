@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block extrahead %}
 {{ block.super }}
@@ -182,7 +182,7 @@
                             </div>
                         </td>
                         <td>
-                            <span class="rw-amount-badge">₹ {{ r.amount }}</span>
+                            <span class="rw-amount-badge">{{ CURRENCY_SYMBOL|default:"$" }} {{ r.amount|floatformat:0|intcomma }}</span>
                         </td>
                         <td>
                             <div class="rw-score-pill {% if r.score >= 780 %}score-high{% elif r.score >= 600 %}score-med{% else %}score-low{% endif %}">
