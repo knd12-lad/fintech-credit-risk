@@ -5,13 +5,19 @@ profile management, form validation, ML prediction pipeline, database persistenc
 access authorization, and error handling.
 """
 
+import csv
 from io import StringIO
+import os
+from pathlib import Path
+import re
+import tempfile
 from unittest.mock import patch
 from decimal import Decimal
 from django.core.management import call_command
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage
 from ml.predict import predict_credit_risk
 
@@ -490,4 +496,76 @@ class RiskWiseMasterTestSuite(TestCase):
             35.0,
             f"Expected High-risk share below 35%, got {high_risk_pct:.1f}%",
         )
+
+    # -------------------------------------------------------------------------
+    # TEST 20: Power BI export data quality and privacy validation
+    # -------------------------------------------------------------------------
+    def test_20_export_powerbi_dataset_sanitization_and_tiers(self):
+        """
+        Verify that exported Power BI dataset has no empty income_tier values,
+        all income_tier values contain a '$', and no email-like strings exist in the CSV.
+        """
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".csv") as tmp:
+            tmp_path = tmp.name
+
+        try:
+            out = StringIO()
+            call_command("export_powerbi_dataset", output=tmp_path, stdout=out)
+
+            with open(tmp_path, mode="r", encoding="utf-8") as f:
+                content = f.read()
+
+            # 1. No email-like string exists in the entire CSV
+            email_pattern = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
+            emails_found = email_pattern.findall(content)
+            self.assertEqual(
+                emails_found,
+                [],
+                f"Privacy violation: Found email addresses in exported CSV: {emails_found}",
+            )
+
+            # 2. Verify income_tier values
+            valid_income_tiers = {
+                "< $25k",
+                "$25k - $50k",
+                "$50k - $75k",
+                "$75k - $100k",
+                "> $100k",
+            }
+            reader = csv.DictReader(content.splitlines())
+            rows = list(reader)
+            self.assertGreater(len(rows), 0, "Exported dataset should contain rows")
+
+            for idx, row in enumerate(rows, start=1):
+                income_tier = row.get("income_tier", "").strip()
+                self.assertTrue(
+                    income_tier,
+                    f"Row {idx} (ID {row.get('application_id')}) has an empty income_tier",
+                )
+                self.assertIn(
+                    "$",
+                    income_tier,
+                    f"Row {idx} income_tier '{income_tier}' lacks a '$'",
+                )
+                self.assertIn(
+                    income_tier,
+                    valid_income_tiers,
+                    f"Row {idx} income_tier '{income_tier}' is not in valid tiers",
+                )
+
+            # Also check the repository artifact file if it exists
+            repo_csv = Path(settings.BASE_DIR) / "powerbi" / "data" / "riskwise_powerbi_dataset.csv"
+            if repo_csv.exists():
+                with open(repo_csv, mode="r", encoding="utf-8") as rf:
+                    repo_content = rf.read()
+                self.assertEqual(email_pattern.findall(repo_content), [])
+                for row in csv.DictReader(repo_content.splitlines()):
+                    tier = row.get("income_tier", "").strip()
+                    self.assertTrue(tier)
+                    self.assertIn("$", tier)
+                    self.assertIn(tier, valid_income_tiers)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
 
