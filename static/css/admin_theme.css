@@ -2101,3 +2101,31 @@ ul.messagelist li.info {
     border-left: 4px solid var(--rx-teal) !important;
     color: var(--rx-teal-dark) !important;
 }
+
+/* ===== ADMIN CHANGELIST TABLE FIX (overrides Django changelists.css) ===== */
+#changelist table#result_list { width: 100%; border-collapse: separate; border-spacing: 0; }
+#changelist table#result_list thead th {
+    background: #F8FAFC; color: var(--rx-muted); font-family: var(--rx-font-head);
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 14px 18px; border-bottom: 2px solid var(--rx-border);
+    text-align: left; white-space: nowrap; vertical-align: middle;
+}
+#changelist table#result_list thead th.action-checkbox-column { width: 44px; padding: 14px 8px 14px 18px; }
+#changelist table#result_list thead th .text,
+#changelist table#result_list thead th .text a { display: inline; padding: 0; }
+#changelist table#result_list tbody th {
+    background: transparent; color: var(--rx-text-dark); font-family: var(--rx-font-body);
+    font-size: 0.88rem; font-weight: 600; text-transform: none; letter-spacing: 0;
+    text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--rx-border-light);
+    white-space: nowrap; vertical-align: middle;
+}
+#changelist table#result_list tbody th a { color: var(--rx-teal-dark); text-decoration: none; }
+#changelist table#result_list tbody th a:hover { text-decoration: underline; }
+#changelist table#result_list tbody td { padding: 14px 18px; }
+#changelist table#result_list td.action-checkbox { width: 44px; padding: 14px 8px 14px 18px; }
+#changelist table#result_list tbody tr:hover th,
+#changelist table#result_list tbody tr:hover td { background: #F8FAFC; }
+#changelist table#result_list tbody tr:last-child th,
+#changelist table#result_list tbody tr:last-child td { border-bottom: none; }
+#changelist table#result_list tbody tr.selected th,
+#changelist table#result_list tbody tr.selected td { background: #ECFEFF; }
