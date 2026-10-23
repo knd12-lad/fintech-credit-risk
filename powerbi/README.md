@@ -60,7 +60,7 @@ powerbi/
 ### 2. Page 2 — Default & Segmentation Analysis
 - **Objective**: Deep-dive into risk drivers across borrower segments and loan characteristics.
 - **Key Visuals**:
-  - Default Probability & Volume by **Loan Grade**: Grades A through E and G (Grade F has 0 records in dataset). Grade A (7.2%, 68 apps), Grade B (13.5%, 72 apps), Grade C (20.3%, 29 apps), Grade D (74.6%, 27 apps), Grade E (51.0%, 8 apps), Grade G (74.3%, 1 app).
+  - Default Probability & Volume by **Loan Grade**: Grades A through E and G (Grade F has 0 records in dataset). Grade A (7.4%, 68 apps), Grade B (13.4%, 72 apps), Grade C (20.3%, 29 apps), Grade D (74.6%, 27 apps), Grade E (46.9%, 8 apps — small sample, not a reliable insight), Grade G (74.3%, 1 app — small sample, not a reliable insight).
   - Risk Distribution across **Loan Purpose**: Medical (33.4% avg default prob), Debt Consolidation (27.8%), Home Improvement (25.6%), Personal (19.7%), Education (17.2%), Venture (12.7%).
   - Risk Profiles segmented by **Annual Income Tiers**: `< $25k` (11 apps, 41.3% avg default prob), `$25k - $50k` (65 apps, 27.3%), `$50k - $75k` (63 apps, 23.4%), `$75k - $100k` (21 apps, 16.9%), `> $100k` (45 apps, 10.2%).
   - Default Risk across **Age Groups**: 18-25 (89 apps, 19.2% avg default prob), 26-35 (93 apps, 22.9%), 36-50 (22 apps, 31.1%), 51+ (1 app, 2.4%).

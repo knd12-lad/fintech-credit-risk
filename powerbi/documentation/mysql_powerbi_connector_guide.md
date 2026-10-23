@@ -67,7 +67,7 @@ c:\fintech-credit-risk\powerbi\data\riskwise_powerbi_dataset.csv
 ```
 
 ### 2. Properties
-- Contains **202 validated records** (200 demo records + 2 live user applications).
+- Contains **205 validated records** (200 demo records + 5 live user applications).
 - Completely stripped of sensitive PII, passwords, and tokens.
 - Includes pre-calculated age groups (`18-25`, `26-35`, `36-50`, `51+`) and income tiers (`< $25k` to `> $100k`).
 

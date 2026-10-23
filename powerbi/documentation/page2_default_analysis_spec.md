@@ -24,15 +24,15 @@ Page 2 investigates the multidimensional drivers of credit risk across demograph
   - Grade B: **72 apps** (35.1% of portfolio)
   - Grade C: **29 apps** (14.1% of portfolio)
   - Grade D: **27 apps** (13.2% of portfolio)
-  - Grade E: **8 apps** (3.9% of portfolio)
-  - Grade G: **1 app** (0.5% of portfolio)
+  - Grade E: **8 apps** (3.9% of portfolio — small sample, not a reliable insight)
+  - Grade G: **1 app** (0.5% of portfolio — small sample, not a reliable insight)
 - **Line Values (Right Y-Axis)**: `[Average Default Probability Pct]` (0% to 100%)
-  - Grade A: **7.24%**
-  - Grade B: **13.46%**
+  - Grade A: **7.40%**
+  - Grade B: **13.38%**
   - Grade C: **20.30%**
   - Grade D: **74.59%**
-  - Grade E: **51.02%**
-  - Grade G: **74.34%**
+  - Grade E: **46.85%** *(small sample, not a reliable insight)*
+  - Grade G: **74.34%** *(small sample, not a reliable insight)*
 - **Insight**: Grades A and B exhibit low predicted default probability (< 15%), whereas Grades D, E, and G show steep escalations in default probability (> 50% to ~75%), reflecting strong alignment with credit tier risk profiles.
 
 ### Visual 2: Default Risk across Loan Intent (Horizontal Bar Chart)
@@ -71,5 +71,5 @@ Page 2 investigates the multidimensional drivers of credit risk across demograph
 ---
 
 ## 4. Analytical Slicers
-- **Home Ownership**: Filter by `RENT` (106 apps), `MORTGAGE` (86 apps), `OWN` (13 apps).
-- **Previous Default on Record**: Filter by `N` (172 apps, 18.06% default prob) vs `Y` (33 apps, 42.79% default prob).
+- **Home Ownership**: Filter by `RENT` (101 apps), `MORTGAGE` (84 apps), `OWN` (18 apps), `OTHER` (2 apps).
+- **Previous Default on Record**: Filter by `N` (175 apps, 18.25% default prob) vs `Y` (30 apps, 44.16% default prob).
