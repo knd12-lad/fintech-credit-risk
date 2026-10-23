@@ -2,6 +2,8 @@
 
 An enterprise-grade, machine-learning-powered credit risk assessment and loan default prediction platform built with Python, Django, MySQL, Scikit-learn, and Power BI.
 
+> **Live Demo**: <ADD LINK AFTER DEPLOY>
+
 ---
 
 ## 1. Project Title & Summary
@@ -225,7 +227,7 @@ To test both portals concurrently in Google Chrome without session cookie collis
 ---
 
 ## 18. Test Execution Instructions
-Run the automated 18-test verification suite:
+Run the automated 23-test verification suite:
 ```powershell
 python manage.py test risk_app -v 2
 ```
@@ -241,7 +243,20 @@ The project includes a 3-page reporting model located in `powerbi/`:
 ---
 
 ## 20. Application Visual Artifacts & Screenshots
-Real ML and EDA evaluation artifacts generated during training:
+
+### 20.1 UI & Dashboard Screenshots
+| View | Description | Screenshot Placeholder |
+| :--- | :--- | :--- |
+| **Home Page** | Landing page with hero banner, feature overview & how it works | `![Home Page](static/images/screenshots/placeholder_home.png)` *(Add screenshot after deploy)* |
+| **Credit Risk Checker** | Assessment form capturing borrower financial parameters | `![Risk Checker](static/images/screenshots/placeholder_risk_checker.png)` *(Add screenshot after deploy)* |
+| **Prediction Result** | Calculated credit score gauge, default probability & risk tier | `![Prediction Result](static/images/screenshots/placeholder_result.png)` *(Add screenshot after deploy)* |
+| **Admin Analytics Hub** | Portfolio KPI metrics, Chart.js charts & compliance log feed | `![Admin Dashboard](static/images/screenshots/placeholder_admin.png)` *(Add screenshot after deploy)* |
+| **Power BI Page 1** | Executive Portfolio Overview & exposure distribution | `![Power BI Overview](static/images/screenshots/placeholder_powerbi_page1.png)` *(Add screenshot after desktop build)* |
+| **Power BI Page 2** | Default Analysis segmented by Grade, Income & Purpose | `![Power BI Default Analysis](static/images/screenshots/placeholder_powerbi_page2.png)` *(Add screenshot after desktop build)* |
+| **Power BI Page 3** | Applicants & Model Insights distribution & audit table | `![Power BI Model Insights](static/images/screenshots/placeholder_powerbi_page3.png)` *(Add screenshot after desktop build)* |
+
+### 20.2 Machine Learning Evaluation Artifacts
+Real ML and EDA evaluation artifacts generated during model training:
 - **Confusion Matrices**: `static/images/ml/01_confusion_matrices.png`
 - **ROC Curves**: `static/images/ml/02_roc_curves.png`
 - **Feature Importance**: `static/images/ml/03_feature_importance.png`
@@ -258,9 +273,107 @@ All demo records are clearly labeled as `Demo Applicant #XXX` and linked to `dem
 
 ---
 
-## 22. Known Limitations
-- The custom credit score (300-900) reflects probability output from a trained model on historical data, not a live credit bureau bureau pull.
-- Power BI Desktop (`PBIDesktopStore.exe`) Microsoft Store edition operates in an isolated desktop sandbox; automated CLI manipulation is not supported, requiring manual import of `powerbi/data/riskwise_powerbi_dataset.csv`.
+## 22. Production Deployment (PythonAnywhere)
+Follow these exact steps to deploy RiskWise to PythonAnywhere:
+
+### Step 1: Clone Repository
+Open a **Bash console** on PythonAnywhere and clone the repository:
+```bash
+git clone https://github.com/knd12-lad/fintech-credit-risk.git
+cd fintech-credit-risk
+```
+
+### Step 2: Create Virtual Environment
+Create and activate a virtual environment using Python 3.12:
+```bash
+mkvirtualenv --python=/usr/bin/python3.12 riskwise-venv
+```
+*(Or manually: `python3.12 -m venv ~/.virtualenvs/riskwise-venv && source ~/.virtualenvs/riskwise-venv/bin/activate`)*
+
+### Step 3: Install Production Dependencies
+```bash
+pip install --upgrade pip
+pip install -r requirements-prod.txt
+```
+> [!IMPORTANT]
+> **Scikit-learn Version Sensitivity**: `requirements-prod.txt` pins `scikit-learn==1.9.1`. The serialized machine learning model in `ml/saved_models/credit_risk_model.joblib` must be run on the exact scikit-learn version it was compiled with to avoid deserialization errors.
+
+### Step 4: Configure MySQL Database
+1. Go to the **Databases** tab on PythonAnywhere.
+2. Initialize your MySQL database instance if not already done.
+3. Under **Create database**, create a database named `fintech_credit_risk` (full database name will be `yourusername$fintech_credit_risk`).
+
+### Step 5: Configure Environment Variables
+Create a production `.env` file in `/home/yourusername/fintech-credit-risk/.env`:
+```env
+SECRET_KEY=your-generated-random-secret-key-at-least-50-characters
+DEBUG=False
+ALLOWED_HOSTS=yourusername.pythonanywhere.com
+CSRF_TRUSTED_ORIGINS=https://yourusername.pythonanywhere.com
+
+DB_NAME=yourusername$fintech_credit_risk
+DB_USER=yourusername
+DB_PASSWORD=your_mysql_password
+DB_HOST=yourusername.mysql.pythonanywhere-services.com
+DB_PORT=3306
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@example.com
+EMAIL_HOST_PASSWORD=your-app-password
+EMAIL_USE_TLS=True
+```
+
+### Step 6: Run Migrations and Seed Data
+In the Bash console (with virtual environment active):
+```bash
+python manage.py migrate
+python manage.py seed_initial_data
+python manage.py createsuperuser
+```
+
+### Step 7: Collect Static Files
+Compile static assets into `staticfiles/`:
+```bash
+python manage.py collectstatic --noinput
+```
+
+### Step 8: Configure PythonAnywhere Web Tab
+1. Navigate to the **Web** tab on PythonAnywhere.
+2. Under **Code**:
+   - **Source code**: `/home/yourusername/fintech-credit-risk`
+   - **Working directory**: `/home/yourusername/fintech-credit-risk`
+3. Under **Virtualenv**:
+   - Set path: `/home/yourusername/.virtualenvs/riskwise-venv`
+4. Under **Static files**:
+   - **URL**: `/static/`
+   - **Directory**: `/home/yourusername/fintech-credit-risk/staticfiles/`
+
+### Step 9: Configure WSGI File
+Click on the WSGI configuration file link (`/var/www/yourusername_pythonanywhere_com_wsgi.py`), clear default content, and replace with:
+```python
+import os
+import sys
+
+path = '/home/yourusername/fintech-credit-risk'
+if path not in sys.path:
+    sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+```
+
+### Step 10: Reload Web App
+Click the green **Reload <yourusername>.pythonanywhere.com** button at the top of the Web tab. Your application is now live!
+
+---
+
+## 23. Known Limitations
+- **Synthetic Demo Data**: The ~200 demo applicants were generated using reproducible random sampling (`generate_demo_predictions --limit 200`) for demonstration and portfolio analytics; they do not contain real personal data.
+- **Educational / Demonstrative Model**: RiskWise is an educational/demo project. Statistical default probabilities and RiskWise credit scores (300-900) are model estimates and must not be used for real lending decisions.
+- **Manual Power BI Authoring**: Power BI Desktop (`PBIDesktopStore.exe`) runs inside a sandboxed client environment without CLI scriptability; `RiskWise_Dashboard.pbix` must be authored manually using the provided CSV dataset (`powerbi/data/riskwise_powerbi_dataset.csv`), theme (`powerbi/RiskWise_Theme.json`), and DAX formulas (`powerbi/dax/measures.dax`).
 
 ---
 
