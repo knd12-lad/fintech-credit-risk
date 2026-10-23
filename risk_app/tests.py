@@ -14,6 +14,7 @@ import tempfile
 from unittest.mock import patch
 from decimal import Decimal
 from django.core.management import call_command
+from django.core import mail
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -580,6 +581,85 @@ class RiskWiseMasterTestSuite(TestCase):
         res = self.client.get("/admin/risk_app/")
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Loan applications")
+
+    # -------------------------------------------------------------------------
+    # TEST 22: Error pages and educational disclaimer
+    # -------------------------------------------------------------------------
+    def test_22_error_pages_and_educational_disclaimer(self):
+        """
+        Verify that:
+        1. 404 response renders custom 404.html template.
+        2. Educational disclaimer appears in footer, risk checker, and results.
+        """
+        disclaimer_text = (
+            "RiskWise is an educational/demo project. Results are model estimates "
+            "and must not be used for real lending decisions."
+        )
+
+        # 404 test
+        res_404 = self.client.get("/nonexistent-page-404-not-found/")
+        self.assertEqual(res_404.status_code, 404)
+        self.assertTemplateUsed(res_404, "404.html")
+        self.assertContains(res_404, "Page Not Found", status_code=404)
+        self.assertContains(res_404, "Back to Home", status_code=404)
+
+        # Disclaimer on homepage (footer include)
+        res_home = self.client.get(reverse("home"))
+        self.assertEqual(res_home.status_code, 200)
+        self.assertContains(res_home, disclaimer_text)
+
+        # Disclaimer on risk checker page
+        self.client.force_login(self.user1)
+        res_checker = self.client.get(reverse("risk_checker"))
+        self.assertEqual(res_checker.status_code, 200)
+        self.assertContains(res_checker, disclaimer_text)
+
+        # Disclaimer on prediction result page
+        res_result = self.client.get(reverse("result", kwargs={"application_id": self.app1.pk}))
+        self.assertEqual(res_result.status_code, 200)
+        self.assertContains(res_result, disclaimer_text)
+
+    # -------------------------------------------------------------------------
+    # TEST 23: Contact form sends email with graceful fallback
+    # -------------------------------------------------------------------------
+    def test_23_contact_form_email_dispatch_and_fallback(self):
+        """
+        Verify that valid contact submission triggers an email notification,
+        and that email failure does not prevent DB persistence or break the form.
+        """
+        mail.outbox.clear()
+        res = self.client.post(
+            reverse("contact"),
+            {
+                "name": "Alex Sender",
+                "email": "alex@example.com",
+                "subject": "Inquiry about RiskWise",
+                "message": "Testing the automated notification email system.",
+            },
+            follow=True,
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(ContactMessage.objects.filter(email="alex@example.com").exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("[RiskWise Contact] Inquiry about RiskWise", mail.outbox[0].subject)
+        self.assertIn("Alex Sender", mail.outbox[0].body)
+
+        # Test failure fallback when send_mail raises an Exception
+        with patch("risk_app.views.send_mail", side_effect=RuntimeError("SMTP connection timed out")):
+            res_fail = self.client.post(
+                reverse("contact"),
+                {
+                    "name": "Fallback User",
+                    "email": "fallback@example.com",
+                    "subject": "Testing Failure Resilience",
+                    "message": "Even if mail server fails, DB must save.",
+                },
+                follow=True,
+            )
+            self.assertEqual(res_fail.status_code, 200)
+            self.assertTrue(ContactMessage.objects.filter(email="fallback@example.com").exists())
+            self.assertContains(res_fail, "Your message has been submitted successfully!")
+
 
 
 

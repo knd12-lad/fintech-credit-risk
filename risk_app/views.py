@@ -1,12 +1,16 @@
-
+import logging
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
+from django.core.mail import send_mail
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+
+logger = logging.getLogger(__name__)
 
 from ml.predict import (
     LOW_RISK_MIN_SCORE,
@@ -254,6 +258,25 @@ def contact_view(request):
             subject=subject,
             message=message,
         )
+
+        try:
+            email_subject = f"[RiskWise Contact] {subject}"
+            email_body = (
+                f"New contact inquiry submitted to RiskWise:\n\n"
+                f"From: {name} <{email}>\n"
+                f"Subject: {subject}\n\n"
+                f"Message:\n{message}\n"
+            )
+            recipient = getattr(settings, "EMAIL_HOST_USER", "") or "admin@riskwise.local"
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@riskwise.local"),
+                recipient_list=[recipient],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.warning("Failed to send contact notification email: %s", e)
 
         messages.success(
             request,

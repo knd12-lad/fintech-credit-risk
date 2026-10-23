@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}404 - Page Not Found | RiskWise{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background: #F4F6F9; min-height: calc(100vh - 200px); display: flex; align-items: center;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 text-center">
+                <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #FFFFFF; border: 1px solid #E2E8F0 !important;">
+                    <div class="mb-4">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background: #ECFEFF; color: #0D9488; font-size: 2.5rem;">
+                            <i class="bi bi-compass"></i>
+                        </span>
+                    </div>
+                    <h1 class="display-4 fw-bold mb-2" style="color: #0B132B; font-family: 'Poppins', sans-serif;">404</h1>
+                    <h2 class="h4 fw-semibold mb-3" style="color: #0B132B;">Page Not Found</h2>
+                    <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                        The page you are looking for might have been moved, removed, or doesn't exist. Let's get you back on track.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'home' %}" class="btn px-4 py-2 fw-semibold text-white" style="background: #14B8A6; border-radius: 10px; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);">
+                            <i class="bi bi-house-door me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
