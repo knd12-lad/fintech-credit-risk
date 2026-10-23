@@ -5,8 +5,10 @@ profile management, form validation, ML prediction pipeline, database persistenc
 access authorization, and error handling.
 """
 
+from io import StringIO
 from unittest.mock import patch
 from decimal import Decimal
+from django.core.management import call_command
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -441,3 +443,51 @@ class RiskWiseMasterTestSuite(TestCase):
             # Must render the risk_checker page gracefully with an error message, not 500
             self.assertEqual(res.status_code, 200)
             self.assertTemplateUsed(res, "risk_checker.html")
+
+    # -------------------------------------------------------------------------
+    # TEST 19: Demo prediction generation creates representative, unbiased sample
+    # -------------------------------------------------------------------------
+    def test_19_generate_demo_predictions_distribution(self):
+        """
+        Verify that generating 200 demo rows gives more than 2 distinct age
+        groups and High-risk share below 35%.
+        """
+        out = StringIO()
+        call_command(
+            "generate_demo_predictions",
+            limit=200,
+            execute=True,
+            reset_demo=True,
+            stdout=out,
+        )
+
+        demo_apps = LoanApplication.objects.filter(
+            full_name__startswith="Demo Applicant #"
+        )
+        self.assertEqual(demo_apps.count(), 200)
+
+        def categorize_age(age):
+            if age <= 25:
+                return "18-25"
+            elif age <= 35:
+                return "26-35"
+            elif age <= 50:
+                return "36-50"
+            return "51+"
+
+        age_groups = {categorize_age(app.age) for app in demo_apps}
+        self.assertGreater(
+            len(age_groups),
+            2,
+            f"Expected more than 2 distinct age groups, got {len(age_groups)}: {age_groups}",
+        )
+
+        demo_preds = Prediction.objects.filter(application__in=demo_apps)
+        high_risk_count = demo_preds.filter(risk_level="High").count()
+        high_risk_pct = (high_risk_count / demo_preds.count()) * 100
+        self.assertLess(
+            high_risk_pct,
+            35.0,
+            f"Expected High-risk share below 35%, got {high_risk_pct:.1f}%",
+        )
+
