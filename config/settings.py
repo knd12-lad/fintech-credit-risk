@@ -5,13 +5,33 @@ Django settings for FinTech Credit Risk project.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
+from django.contrib.messages import constants as message_constants
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables (do NOT override already-set shell variables)
 load_dotenv(BASE_DIR / ".env")
 
+# 5.1 DEBUG defaults to False
+DEBUG = os.getenv("DEBUG", "False").strip().lower() in ("true", "1", "t", "yes")
+
+# 5.1 If DEBUG is False and SECRET_KEY is missing, raise ImproperlyConfigured
 SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+if not DEBUG and not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY environment variable is required when DEBUG is False.")
+if not SECRET_KEY:
+    SECRET_KEY = "django-insecure-dev-fallback-key-replace-in-production"
+
+# ALLOWED_HOSTS
+allowed_hosts_raw = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_raw.split(",") if h.strip()]
+
+# 5.2 CSRF_TRUSTED_ORIGINS from env (comma separated, ignore empty)
+csrf_trusted_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in csrf_trusted_raw.split(",") if origin.strip()
+]
 
 
 # Application definition
@@ -27,8 +47,10 @@ INSTALLED_APPS = [
     "risk_app",
 ]
 
+# 5.3 Add whitenoise middleware right after SecurityMiddleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -56,7 +78,6 @@ TEMPLATES = [
 ]
 
 CURRENCY_SYMBOL = "$"
-
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -94,10 +115,33 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files
+# Static files (CSS, JavaScript, Images)
+# 5.3 Whitenoise and static root configuration
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+if not DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+# 5.4 Production HTTPS and Security Hardening
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 3600
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    X_FRAME_OPTIONS = "DENY"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -106,9 +150,16 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 
-
-
-
-from django.contrib.messages import constants as message_constants
-
 MESSAGE_TAGS = {message_constants.ERROR: "danger"}
+
+# Email Configuration (Phase 6 Preparation)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 25))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").strip().lower() in ("true", "1", "t", "yes")
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
