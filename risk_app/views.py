@@ -369,12 +369,33 @@ def result_view(request, application_id):
         application.prediction.credit_score / 900 * 100
     )
 
+    explanation = None
+    try:
+        from ml.explain import explain_prediction
+
+        app_data = {
+            "person_age": application.age,
+            "person_income": float(application.annual_income),
+            "person_emp_length": float(application.employment_length),
+            "loan_amnt": float(application.loan_amount),
+            "loan_int_rate": float(application.interest_rate),
+            "cb_person_cred_hist_length": application.credit_history_length,
+            "loan_grade": application.loan_grade,
+            "cb_person_default_on_file": application.previous_default,
+            "person_home_ownership": application.home_ownership,
+            "loan_intent": application.loan_type.code,
+        }
+        explanation = explain_prediction(app_data)
+    except Exception as e:
+        logger.exception("Failed to generate prediction explanation: %s", e)
+
     return render(
         request,
         "result.html",
         {
             "application": application,
             "score_percentage": score_percentage,
+            "explanation": explanation,
         },
     )
 

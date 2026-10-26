@@ -1,0 +1,98 @@
+[
+  {
+    "person_age": 36,
+    "person_income": 62000,
+    "person_emp_length": 9.0,
+    "loan_amnt": 4800,
+    "loan_int_rate": 8.0,
+    "cb_person_cred_hist_length": 12,
+    "loan_grade": "A",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "MORTGAGE",
+    "loan_intent": "EDUCATION"
+  },
+  {
+    "person_age": 24,
+    "person_income": 100000,
+    "person_emp_length": 5.0,
+    "loan_amnt": 16000,
+    "loan_int_rate": 11.12,
+    "cb_person_cred_hist_length": 3,
+    "loan_grade": "B",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "RENT",
+    "loan_intent": "HOMEIMPROVEMENT"
+  },
+  {
+    "person_age": 23,
+    "person_income": 100000,
+    "person_emp_length": 7.0,
+    "loan_amnt": 15000,
+    "loan_int_rate": 7.88,
+    "cb_person_cred_hist_length": 4,
+    "loan_grade": "A",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "MORTGAGE",
+    "loan_intent": "EDUCATION"
+  },
+  {
+    "person_age": 28,
+    "person_income": 62352,
+    "person_emp_length": 3.0,
+    "loan_amnt": 3800,
+    "loan_int_rate": 6.62,
+    "cb_person_cred_hist_length": 6,
+    "loan_grade": "A",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "MORTGAGE",
+    "loan_intent": "EDUCATION"
+  },
+  {
+    "person_age": 23,
+    "person_income": 8088,
+    "person_emp_length": 4.0,
+    "loan_amnt": 1000,
+    "loan_int_rate": 10.0,
+    "cb_person_cred_hist_length": 4,
+    "loan_grade": "B",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "RENT",
+    "loan_intent": "MEDICAL"
+  },
+  {
+    "person_age": 24,
+    "person_income": 30000,
+    "person_emp_length": 4.0,
+    "loan_amnt": 10000,
+    "loan_int_rate": 15.99,
+    "cb_person_cred_hist_length": 2,
+    "loan_grade": "D",
+    "cb_person_default_on_file": "Y",
+    "person_home_ownership": "MORTGAGE",
+    "loan_intent": "MEDICAL"
+  },
+  {
+    "person_age": 26,
+    "person_income": 71000,
+    "person_emp_length": 10.0,
+    "loan_amnt": 6000,
+    "loan_int_rate": 15.62,
+    "cb_person_cred_hist_length": 4,
+    "loan_grade": "D",
+    "cb_person_default_on_file": "N",
+    "person_home_ownership": "MORTGAGE",
+    "loan_intent": "DEBTCONSOLIDATION"
+  },
+  {
+    "person_age": 21,
+    "person_income": 16000,
+    "person_emp_length": 2.0,
+    "loan_amnt": 1000,
+    "loan_int_rate": 15.65,
+    "cb_person_cred_hist_length": 3,
+    "loan_grade": "D",
+    "cb_person_default_on_file": "Y",
+    "person_home_ownership": "RENT",
+    "loan_intent": "VENTURE"
+  }
+]

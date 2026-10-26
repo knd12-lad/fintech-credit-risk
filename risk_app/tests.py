@@ -24,6 +24,7 @@ from django.utils import timezone
 from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage, ActivityLog
 from risk_app.utils import needle_angle
 from ml.predict import predict_credit_risk
+from ml.explain import explain_prediction
 
 User = get_user_model()
 
@@ -1229,4 +1230,82 @@ class RiskWiseMasterTestSuite(TestCase):
             user=self.user1, action__icontains="Login"
         )
         self.assertEqual(target_login_logs.count(), 0)
+
+    # -------------------------------------------------------------------------
+    # TEST 40: Shapley explainability suite (additivity, determinism, risk, page)
+    # -------------------------------------------------------------------------
+    def test_40_shapley_explainability_suite(self):
+        """
+        Phase 11 Task 1.5:
+        - Additivity: sum of the 10 phi values equals applicant_prob - baseline_prob within 1e-6
+        - Determinism: two calls give identical output
+        - High-risk sample: person_income or loan_grade in top 2 factors, both "hurt"
+        - Strong profile: net helpful impact
+        - Result page: returns 200 and contains 'Why this score?'
+        """
+        high_risk_data = {
+            "person_age": 23,
+            "person_income": 18000,
+            "person_emp_length": 0,
+            "person_home_ownership": "RENT",
+            "loan_intent": "MEDICAL",
+            "loan_grade": "D",
+            "loan_amnt": 15000,
+            "loan_int_rate": 16.5,
+            "cb_person_default_on_file": "Y",
+            "cb_person_cred_hist_length": 2,
+        }
+
+        # 1. Determinism
+        res1 = explain_prediction(high_risk_data)
+        res2 = explain_prediction(high_risk_data)
+        self.assertEqual(res1, res2)
+
+        # 2. Additivity: sum of 10 phi values equals applicant_prob - baseline_prob within 1e-6
+        phis = res1["shapley_values"]
+        self.assertEqual(len(phis), 10)
+        phi_sum = sum(phis.values())
+        prob_diff = res1["applicant_probability"] - res1["baseline_probability"]
+        self.assertAlmostEqual(phi_sum, prob_diff, places=6)
+
+        # 3. High-risk sample: person_income or loan_grade in top 2 factors and both hurt
+        top_2_fields = [f["field"] for f in res1["factors"][:2]]
+        self.assertTrue(
+            "person_income" in top_2_fields or "loan_grade" in top_2_fields,
+            f"Expected person_income or loan_grade in top 2, got {top_2_fields}",
+        )
+        # Check that both person_income and loan_grade hurt (negative impact points)
+        self.assertLess(round(-phis["person_income"] * 600), 0)
+        self.assertLess(round(-phis["loan_grade"] * 600), 0)
+        # Check factors direction in top factors
+        factor_directions = {f["field"]: f["direction"] for f in res1["factors"]}
+        self.assertEqual(factor_directions["person_income"], "hurts")
+        self.assertEqual(factor_directions["loan_grade"], "hurts")
+
+        # 4. Strong profile has net helpful impact
+        strong_data = {
+            "person_age": 45,
+            "person_income": 150000,
+            "person_emp_length": 15,
+            "person_home_ownership": "MORTGAGE",
+            "loan_intent": "VENTURE",
+            "loan_grade": "A",
+            "loan_amnt": 5000,
+            "loan_int_rate": 5.5,
+            "cb_person_default_on_file": "N",
+            "cb_person_cred_hist_length": 15,
+        }
+        res_strong = explain_prediction(strong_data)
+        total_strong_impact = sum(f["impact_points"] for f in res_strong["factors"]) + res_strong["other_points"]
+        self.assertGreater(total_strong_impact, 0)
+        self.assertGreater(res_strong["applicant_score"], res_strong["baseline_score"])
+        self.assertLess(res_strong["applicant_probability"], res_strong["baseline_probability"])
+
+        # 5. Result page returns 200 and contains "Why this score?"
+        self.client.force_login(self.user1)
+        res_page = self.client.get(reverse("result", kwargs={"application_id": self.app1.id}))
+        self.assertEqual(res_page.status_code, 200)
+        content = res_page.content.decode()
+        self.assertIn("Why this score?", content)
+        self.assertIn("Approximate influence of each input compared with the average applicant", content)
 
