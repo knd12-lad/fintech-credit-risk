@@ -529,9 +529,9 @@
 
                         <!-- Horizontal Impact Bar -->
                         <div class="progress mb-2" style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                            <div class="progress-bar {% if factor.direction == 'helps' %}bg-success{% else %}bg-danger{% endif %}"
+                            <div class="progress-bar explanation-progress-bar {% if factor.direction == 'helps' %}bg-success{% else %}bg-danger{% endif %}"
                                  role="progressbar"
-                                 style="width: {{ factor.bar_pct }}%;"
+                                 data-width="{{ factor.bar_pct }}"
                                  aria-valuenow="{{ factor.abs_points }}"
                                  aria-valuemin="0"
                                  aria-valuemax="{{ explanation.max_impact }}">
@@ -812,6 +812,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const percentage = Math.min(100, Math.max(0, (score / 900) * 100));
 
         bar.style.width = percentage + "%";
+    });
+
+    document.querySelectorAll(".explanation-progress-bar").forEach(function (bar) {
+        const width = Number(bar.dataset.width) || 0;
+        bar.style.width = width + "%";
     });
 });
 </script>
