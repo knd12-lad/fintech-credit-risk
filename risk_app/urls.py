@@ -33,6 +33,11 @@ urlpatterns = [
         views.result_view,
         name="result",
     ),
+    path(
+        "api/what-if/<int:application_id>/",
+        views.what_if_api,
+        name="what_if_api",
+    ),
 
     # Authentication
     path("register/", views.register_view, name="register"),

@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import transaction
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -398,6 +400,99 @@ def result_view(request, application_id):
             "explanation": explanation,
         },
     )
+
+
+@login_required
+def what_if_api(request, application_id):
+    """
+    Simulation endpoint: evaluates modified loan parameters without database writes.
+    Login required, owner only (404 otherwise). Rate-limited to 60 requests/minute.
+    """
+    application = get_object_or_404(
+        LoanApplication.objects.select_related("loan_type", "prediction"),
+        pk=application_id,
+        user=request.user,
+    )
+
+    # Per-user rate limit (60 requests per minute)
+    cache_key = f"what_if_rl_{request.user.pk}"
+    req_count = cache.get(cache_key, 0)
+    if req_count >= 60:
+        return JsonResponse(
+            {"error": "Rate limit exceeded (60 requests per minute). Please wait."},
+            status=429,
+        )
+    cache.set(cache_key, req_count + 1, timeout=60)
+
+    # Base application data
+    data = {
+        "person_age": int(application.age),
+        "person_income": float(application.annual_income),
+        "person_emp_length": float(application.employment_length),
+        "person_home_ownership": application.home_ownership,
+        "loan_intent": application.loan_type.code,
+        "loan_grade": application.loan_grade,
+        "loan_amnt": float(application.loan_amount),
+        "loan_int_rate": float(application.interest_rate),
+        "cb_person_default_on_file": application.previous_default,
+        "cb_person_cred_hist_length": int(application.credit_history_length),
+    }
+
+    allowed_params = [
+        "person_income",
+        "loan_amnt",
+        "loan_int_rate",
+        "person_emp_length",
+        "cb_person_cred_hist_length",
+    ]
+
+    for param in allowed_params:
+        if param in request.GET:
+            raw_val = request.GET.get(param)
+            if raw_val is not None and str(raw_val).strip() != "":
+                field = RiskCheckerForm.base_fields.get(param)
+                if field is not None:
+                    try:
+                        cleaned = field.clean(raw_val)
+                    except forms.ValidationError as e:
+                        msg = e.messages[0] if hasattr(e, "messages") and e.messages else str(e)
+                        return JsonResponse({"error": f"{param}: {msg}"}, status=400)
+                    except Exception as e:
+                        return JsonResponse({"error": f"{param}: {str(e)}"}, status=400)
+
+                    if param in ("person_income", "loan_amnt", "loan_int_rate", "person_emp_length"):
+                        data[param] = float(cleaned)
+                    elif param == "cb_person_cred_hist_length":
+                        data[param] = int(cleaned)
+
+    try:
+        pred_res = predict_credit_risk(data)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+    score = pred_res["credit_score"]
+    prob = pred_res["default_probability"]
+    prob_pct = round(prob * 100, 1)
+    risk_level = pred_res["risk_level"]
+    risk_label = f"{risk_level} Risk"
+    angle = needle_angle(score)
+
+    saved_pred = application.prediction
+    saved_score = saved_pred.credit_score
+    saved_prob_pct = round(saved_pred.default_probability * 100, 1)
+
+    delta_score = score - saved_score
+    delta_prob_pct = round(prob_pct - saved_prob_pct, 1)
+
+    return JsonResponse({
+        "score": score,
+        "probability_pct": prob_pct,
+        "risk_level": risk_level,
+        "risk_label": risk_label,
+        "needle_angle": angle,
+        "delta_score": delta_score,
+        "delta_probability_pct": delta_prob_pct,
+    })
 
 
 class RiskWisePasswordChangeView(PasswordChangeView):

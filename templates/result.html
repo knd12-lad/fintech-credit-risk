@@ -1,6 +1,7 @@
 
 {% extends "base.html" %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}Prediction Result | RiskWise{% endblock %}
 
@@ -552,6 +553,118 @@
         </div>
         {% endif %}
 
+        <!-- What if...? (Scenario Simulator Card) -->
+        <div class="card result-card mb-4" id="what-if-card" data-api-url="{% url 'what_if_api' application.id %}">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="result-icon" style="background: rgba(15, 118, 110, 0.12); color: #0F766E; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold" style="color: #0B132B;">What if...?</h4>
+                            <p class="text-muted small mb-0">Simulate how changing loan terms or income parameters would impact your score in real-time.</p>
+                        </div>
+                    </div>
+                    <button type="button" id="whatif-reset-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </button>
+                </div>
+
+                <div class="row g-4 align-items-center">
+                    <!-- Left Column: 4 Sliders -->
+                    <div class="col-12 col-lg-7">
+                        <div class="d-flex flex-column gap-3">
+                            <!-- Income Slider -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-income" class="form-label mb-0 small fw-semibold text-secondary">Annual Income</label>
+                                    <span id="whatif-income-val" class="badge bg-light text-dark border fw-bold">${{ application.annual_income|floatformat:0|intcomma }}</span>
+                                </div>
+                                <input type="range" class="form-range" id="whatif-income" min="1000" max="{% if application.annual_income > 200000 %}{{ application.annual_income|floatformat:0 }}{% else %}200000{% endif %}" step="1000" value="{{ application.annual_income|floatformat:0 }}" data-initial="{{ application.annual_income|floatformat:0 }}">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span>$1k</span>
+                                    <span>${% if application.annual_income > 200000 %}{{ application.annual_income|floatformat:0 }}{% else %}200k{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <!-- Loan Amount Slider -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-loan" class="form-label mb-0 small fw-semibold text-secondary">Loan Amount</label>
+                                    <span id="whatif-loan-val" class="badge bg-light text-dark border fw-bold">${{ application.loan_amount|floatformat:0|intcomma }}</span>
+                                </div>
+                                <input type="range" class="form-range" id="whatif-loan" min="500" max="{% if application.loan_amount > 50000 %}{{ application.loan_amount|floatformat:0 }}{% else %}50000{% endif %}" step="500" value="{{ application.loan_amount|floatformat:0 }}" data-initial="{{ application.loan_amount|floatformat:0 }}">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span>$500</span>
+                                    <span>${% if application.loan_amount > 50000 %}{{ application.loan_amount|floatformat:0 }}{% else %}50k{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <!-- Interest Rate Slider -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-rate" class="form-label mb-0 small fw-semibold text-secondary">Interest Rate</label>
+                                    <span id="whatif-rate-val" class="badge bg-light text-dark border fw-bold">{{ application.interest_rate|floatformat:1 }}%</span>
+                                </div>
+                                <input type="range" class="form-range" id="whatif-rate" min="0.0" max="40.0" step="0.1" value="{{ application.interest_rate|floatformat:1 }}" data-initial="{{ application.interest_rate|floatformat:1 }}">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span>0.0%</span>
+                                    <span>40.0%</span>
+                                </div>
+                            </div>
+
+                            <!-- Employment Length Slider -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-emp" class="form-label mb-0 small fw-semibold text-secondary">Employment Length</label>
+                                    <span id="whatif-emp-val" class="badge bg-light text-dark border fw-bold">{{ application.employment_length|floatformat:0 }} yrs</span>
+                                </div>
+                                <input type="range" class="form-range" id="whatif-emp" min="0" max="60" step="1" value="{{ application.employment_length|floatformat:0 }}" data-initial="{{ application.employment_length|floatformat:0 }}">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span>0 yrs</span>
+                                    <span>60 yrs</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Simulated Result Panel -->
+                    <div class="col-12 col-lg-5">
+                        <div class="p-3 rounded-3 text-center border" style="background: #F8FAFC;">
+                            <div class="text-muted small fw-semibold text-uppercase tracking-wider mb-1">Simulated Credit Score</div>
+                            <div class="d-flex justify-content-center align-items-baseline gap-1 mb-2">
+                                <span id="whatif-score" class="display-6 fw-bold text-dark">{{ application.prediction.credit_score }}</span>
+                                <span class="text-muted fs-6">/900</span>
+                            </div>
+
+                            <div class="d-flex justify-content-center align-items-center gap-2 mb-2">
+                                <span id="whatif-risk-pill" class="risk-badge risk-{{ application.prediction.risk_level|lower }}">
+                                    {{ application.prediction.risk_level }} Risk
+                                </span>
+                                <span id="whatif-prob" class="small text-muted fw-semibold">
+                                    {% widthratio application.prediction.default_probability 1 100 as p %}{{ p }}%
+                                </span>
+                            </div>
+
+                            <div>
+                                <span id="whatif-delta" class="fw-semibold px-2 py-1 rounded small" style="display: inline-block; background: #F1F5F9; color: #475569;">
+                                    0 points vs your result
+                                </span>
+                            </div>
+
+                            <div id="whatif-error" class="alert alert-warning py-1 px-2 mt-2 small d-none" role="alert"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-top text-muted small">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    Simulation only. Nothing is saved.
+                </div>
+            </div>
+        </div>
+
         <!-- Application Details -->
         <div class="details-card">
             <div class="details-header">
@@ -688,4 +801,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/what_if.js' %}"></script>
 {% endblock %}

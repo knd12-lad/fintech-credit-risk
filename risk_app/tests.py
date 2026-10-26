@@ -14,6 +14,7 @@ import tempfile
 from unittest.mock import patch
 from datetime import timedelta
 from decimal import Decimal
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core import mail, signing
 from django.test import TestCase, Client
@@ -1308,4 +1309,114 @@ class RiskWiseMasterTestSuite(TestCase):
         content = res_page.content.decode()
         self.assertIn("Why this score?", content)
         self.assertIn("Approximate influence of each input compared with the average applicant", content)
+
+    # -------------------------------------------------------------------------
+    # TEST 41: What-If Simulator API suite (permissions, validation, rate limit)
+    # -------------------------------------------------------------------------
+    def test_41_what_if_simulator_suite(self):
+        """
+        Phase 11 Task 2.3:
+        - Owner gets 200 and numbers equal predict_credit_risk on modified data
+        - Another user gets 404
+        - Anonymous is redirected to login
+        - Invalid values give 400 with {"error": "..."}
+        - Missing parameters fall back to saved values
+        - No LoanApplication or Prediction row is created
+        - 61st request in a minute gets 429
+        """
+        url = reverse("what_if_api", kwargs={"application_id": self.app1.id})
+
+        # 1. Anonymous is redirected to login
+        anon_client = Client()
+        res_anon = anon_client.get(url)
+        self.assertEqual(res_anon.status_code, 302)
+        self.assertTrue(res_anon["Location"].startswith(reverse("login")))
+
+        # 2. Another user gets 404
+        client_user2 = Client()
+        client_user2.force_login(self.user2)
+        res_other = client_user2.get(url)
+        self.assertEqual(res_other.status_code, 404)
+
+        # 3. Owner gets 200 and numbers equal predict_credit_risk on modified data
+        self.client.force_login(self.user1)
+        app_count_before = LoanApplication.objects.count()
+        pred_count_before = Prediction.objects.count()
+
+        params = {
+            "person_income": "90000",
+            "loan_amnt": "12000",
+            "loan_int_rate": "9.5",
+            "person_emp_length": "6",
+        }
+        res_mod = self.client.get(url, params)
+        self.assertEqual(res_mod.status_code, 200)
+        data = res_mod.json()
+
+        expected_input = {
+            "person_age": int(self.app1.age),
+            "person_income": 90000.0,
+            "person_emp_length": 6.0,
+            "person_home_ownership": self.app1.home_ownership,
+            "loan_intent": self.app1.loan_type.code,
+            "loan_grade": self.app1.loan_grade,
+            "loan_amnt": 12000.0,
+            "loan_int_rate": 9.5,
+            "cb_person_default_on_file": self.app1.previous_default,
+            "cb_person_cred_hist_length": int(self.app1.credit_history_length),
+        }
+        expected_pred = predict_credit_risk(expected_input)
+
+        self.assertEqual(data["score"], expected_pred["credit_score"])
+        self.assertEqual(data["probability_pct"], round(expected_pred["default_probability"] * 100, 1))
+        self.assertEqual(data["risk_level"], expected_pred["risk_level"])
+        self.assertEqual(data["risk_label"], f"{expected_pred['risk_level']} Risk")
+        self.assertEqual(data["needle_angle"], needle_angle(expected_pred["credit_score"]))
+        self.assertEqual(data["delta_score"], expected_pred["credit_score"] - self.pred1.credit_score)
+        self.assertEqual(
+            data["delta_probability_pct"],
+            round(round(expected_pred["default_probability"] * 100, 1) - round(self.pred1.default_probability * 100, 1), 1),
+        )
+
+        # 4. Missing parameters fall back to saved values
+        res_fallback = self.client.get(url)
+        self.assertEqual(res_fallback.status_code, 200)
+        data_fb = res_fallback.json()
+        expected_saved_pred = predict_credit_risk({
+            "person_age": int(self.app1.age),
+            "person_income": float(self.app1.annual_income),
+            "person_emp_length": float(self.app1.employment_length),
+            "person_home_ownership": self.app1.home_ownership,
+            "loan_intent": self.app1.loan_type.code,
+            "loan_grade": self.app1.loan_grade,
+            "loan_amnt": float(self.app1.loan_amount),
+            "loan_int_rate": float(self.app1.interest_rate),
+            "cb_person_default_on_file": self.app1.previous_default,
+            "cb_person_cred_hist_length": int(self.app1.credit_history_length),
+        })
+        self.assertEqual(data_fb["score"], expected_saved_pred["credit_score"])
+        self.assertEqual(data_fb["delta_score"], expected_saved_pred["credit_score"] - self.pred1.credit_score)
+
+        # 5. No LoanApplication or Prediction row is created
+        self.assertEqual(LoanApplication.objects.count(), app_count_before)
+        self.assertEqual(Prediction.objects.count(), pred_count_before)
+
+        # 6. Invalid values return 400 JSON {"error": "..."}
+        res_inv_income = self.client.get(url, {"person_income": "-100"})
+        self.assertEqual(res_inv_income.status_code, 400)
+        self.assertIn("error", res_inv_income.json())
+
+        res_inv_rate = self.client.get(url, {"loan_int_rate": "85.0"})
+        self.assertEqual(res_inv_rate.status_code, 400)
+        self.assertIn("error", res_inv_rate.json())
+
+        # 7. Rate limit: 61st request in a minute gets 429
+        cache.clear()
+        for i in range(60):
+            r = self.client.get(url)
+            self.assertEqual(r.status_code, 200, f"Request {i+1} should be 200")
+        r_61 = self.client.get(url)
+        self.assertEqual(r_61.status_code, 429)
+        self.assertIn("error", r_61.json())
+        cache.clear()
 
