@@ -420,13 +420,13 @@ section[id] {
 
 .rx-needle {
     transform-origin: 160px 160px;
-    transform: rotate(158.4deg);
+    transform: rotate(var(--needle-angle, 158.4deg));
     animation: rx-sweep 1.5s cubic-bezier(.2, .8, .2, 1) .3s both;
 }
 
 @keyframes rx-sweep {
     from { transform: rotate(0deg); }
-    to { transform: rotate(158.4deg); }
+    to { transform: rotate(var(--needle-angle, 158.4deg)); }
 }
 
 .rx-gauge-meta {

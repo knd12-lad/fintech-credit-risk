@@ -20,9 +20,11 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage
+from risk_app.utils import needle_angle
 from ml.predict import predict_credit_risk
 
 User = get_user_model()
+
 
 
 class RiskWiseMasterTestSuite(TestCase):
@@ -796,7 +798,142 @@ class RiskWiseMasterTestSuite(TestCase):
         self.assertIn(settings.SESSION_COOKIE_NAME, user_res.cookies)
         self.assertNotIn("rw_admin_sessionid", user_res.cookies)
 
+    # -------------------------------------------------------------------------
+    # TEST 28: needle_angle formula and clamping
+    # -------------------------------------------------------------------------
+    def test_28_needle_angle_math_and_clamping(self):
+        """
+        1.5: needle_angle(300)=0, (600)=90, (900)=180, values outside 300..900 are clamped.
+        """
+        self.assertEqual(needle_angle(300), 0)
+        self.assertEqual(needle_angle(600), 90)
+        self.assertEqual(needle_angle(900), 180)
+        self.assertEqual(needle_angle(200), 0)
+        self.assertEqual(needle_angle(1200), 180)
+        self.assertEqual(needle_angle(828), 158.4)
 
+    # -------------------------------------------------------------------------
+    # TEST 29: Anonymous user sees sample hero card
+    # -------------------------------------------------------------------------
+    def test_29_anonymous_home_shows_sample(self):
+        """
+        1.5: Anonymous home shows "Sample", sample score 828, and sample disclaimer.
+        """
+        res = self.client.get(reverse("home"))
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.context["hero"]["is_sample"])
+        self.assertEqual(res.context["hero"]["score"], 828)
+        self.assertFalse(res.context["has_history"])
+        self.assertContains(res, "Sample")
+        self.assertContains(res, "828")
+        self.assertContains(res, "Sample result for illustration only.")
+        self.assertNotContains(res, "Your latest result")
 
+    # -------------------------------------------------------------------------
+    # TEST 30: Authenticated user without predictions sees sample and first check link
+    # -------------------------------------------------------------------------
+    def test_30_user_without_prediction_sees_sample_and_first_check_link(self):
+        """
+        1.5: A user with no prediction sees the sample plus the "first check" link.
+        """
+        # User 2 has no prediction
+        self.client.force_login(self.user2)
+        res = self.client.get(reverse("home"))
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.context["hero"]["is_sample"])
+        self.assertFalse(res.context["has_history"])
+        self.assertContains(res, "Sample")
+        self.assertContains(res, "Run your first check to see your own score here.")
+        self.assertContains(res, reverse("risk_checker"))
+        self.assertNotContains(res, "Your latest result")
 
+    # -------------------------------------------------------------------------
+    # TEST 31: Authenticated user with predictions sees most recent score
+    # -------------------------------------------------------------------------
+    def test_31_user_with_predictions_sees_most_recent_score_and_latest_result(self):
+        """
+        1.5: A user with predictions sees their MOST RECENT score and "Your latest result".
+        """
+        # User 1 already has self.pred1 (score 809). Add a newer prediction.
+        app2 = LoanApplication.objects.create(
+            user=self.user1,
+            loan_type=self.loan_types["MEDICAL"],
+            full_name=self.user1.full_name,
+            age=28,
+            annual_income=Decimal("85000.00"),
+            employment_length=6.0,
+            home_ownership="OWN",
+            loan_grade="A",
+            loan_amount=Decimal("12000.00"),
+            interest_rate=7.5,
+            previous_default="N",
+            credit_history_length=6,
+        )
+        pred2 = Prediction.objects.create(
+            application=app2,
+            default_probability=0.07,
+            credit_score=865,
+            risk_level="Low",
+            predicted_status=0,
+            model_name="Random Forest",
+        )
+
+        self.client.force_login(self.user1)
+        res = self.client.get(reverse("home"))
+        self.assertEqual(res.status_code, 200)
+        self.assertFalse(res.context["hero"]["is_sample"])
+        self.assertTrue(res.context["has_history"])
+        self.assertEqual(res.context["hero"]["score"], 865)
+        self.assertEqual(res.context["hero"]["application_id"], app2.id)
+        self.assertEqual(res.context["hero"]["needle_angle"], needle_angle(865))
+        self.assertContains(res, "Your latest result")
+        self.assertContains(res, "865")
+        self.assertContains(res, "Based on your assessment on")
+        self.assertContains(res, "View full result")
+        self.assertContains(res, reverse("result", args=[app2.id]))
+        self.assertContains(res, f"--needle-angle: {needle_angle(865)}deg")
+
+    # -------------------------------------------------------------------------
+    # TEST 32: User isolation - User A never sees User B's score
+    # -------------------------------------------------------------------------
+    def test_32_user_a_never_sees_user_b_score(self):
+        """
+        1.5: User A never sees User B's score.
+        """
+        # Create a specific prediction for User 2
+        app_b = LoanApplication.objects.create(
+            user=self.user2,
+            loan_type=self.loan_types["VENTURE"],
+            full_name=self.user2.full_name,
+            age=40,
+            annual_income=Decimal("50000.00"),
+            employment_length=3.0,
+            home_ownership="RENT",
+            loan_grade="E",
+            loan_amount=Decimal("30000.00"),
+            interest_rate=21.0,
+            previous_default="Y",
+            credit_history_length=3,
+        )
+        pred_b = Prediction.objects.create(
+            application=app_b,
+            default_probability=0.72,
+            credit_score=420,
+            risk_level="High",
+            predicted_status=1,
+            model_name="Random Forest",
+        )
+
+        # Login User 2: sees 420
+        self.client.force_login(self.user2)
+        res_user2 = self.client.get(reverse("home"))
+        self.assertEqual(res_user2.context["hero"]["score"], 420)
+        self.assertEqual(res_user2.context["hero"]["risk_level_key"], "high")
+        self.assertEqual(res_user2.context["hero"]["risk_label"], "High Risk")
+
+        # Login User 1: sees User 1's score (809 from setUpTestData), NOT User 2's (420)
+        self.client.force_login(self.user1)
+        res_user1 = self.client.get(reverse("home"))
+        self.assertEqual(res_user1.context["hero"]["score"], 809)
+        self.assertNotEqual(res_user1.context["hero"]["score"], 420)
 

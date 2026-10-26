@@ -1,6 +1,6 @@
 
 {% extends "base.html" %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}RiskWise | Know Your Credit Risk Before You Borrow{% endblock %}
 
@@ -132,14 +132,14 @@
                         <span>Credit Risk Report</span>
                         <span class="rx-live">
                             <i class="bi bi-circle-fill" style="font-size:.5rem"></i>
-                            Sample
+                            {% if hero.is_sample %}Sample{% else %}Your latest result{% endif %}
                         </span>
                     </div>
 
                     <svg class="rx-gauge"
                          viewBox="0 0 320 196"
                          role="img"
-                         aria-label="Illustrative credit score of 828 with low risk">
+                         aria-label="{% if hero.is_sample %}Illustrative credit score of {{ hero.score }} with {{ hero.risk_level_key }} risk{% else %}Credit score of {{ hero.score }} with {{ hero.risk_level_key }} risk{% endif %}">
 
                         <path d="M40 160 A120 120 0 0 1 157.74 40.02"
                               fill="none"
@@ -166,13 +166,13 @@
 
                         <text class="rx-gauge-score"
                               x="160" y="118"
-                              text-anchor="middle">828</text>
+                              text-anchor="middle">{{ hero.score }}</text>
 
                         <text class="rx-gauge-label"
                               x="160" y="138"
                               text-anchor="middle">CREDIT SCORE</text>
 
-                        <g class="rx-needle">
+                        <g class="rx-needle" style="--needle-angle: {{ hero.needle_angle|unlocalize }}deg">
                             <line x1="160" y1="160"
                                   x2="70" y2="160"
                                   stroke="#FFFFFF"
@@ -187,20 +187,28 @@
                     <div class="rx-gauge-meta">
                         <div class="rx-meta-box">
                             <small>Risk Level</small>
-                            <span class="rx-risk-pill low">
+                            <span class="rx-risk-pill {{ hero.risk_level_key }}">
                                 <i class="bi bi-shield-check"></i>
-                                Low Risk
+                                {{ hero.risk_label }}
                             </span>
                         </div>
 
                         <div class="rx-meta-box">
                             <small>Default Probability</small>
-                            <strong>12%</strong>
+                            <strong>{{ hero.probability_pct }}%</strong>
                         </div>
                     </div>
 
                     <p class="rx-gauge-note">
-                        Sample result for illustration only.
+                        {% if not hero.is_sample %}
+                            Based on your assessment on {{ hero.created_at|date:"d M Y" }}.
+                            <a href="{% url 'result' hero.application_id %}" class="rx-gold text-decoration-underline ms-1">View full result</a>
+                        {% elif user.is_authenticated %}
+                            Run your first check to see your own score here.
+                            <a href="{% url 'risk_checker' %}" class="rx-gold text-decoration-underline ms-1">Run your first check &rarr;</a>
+                        {% else %}
+                            Sample result for illustration only.
+                        {% endif %}
                     </p>
                 </div>
             </div>

@@ -26,6 +26,7 @@ from .models import (
     ModelInfo,
     Prediction,
 )
+from .utils import needle_angle
 
 User = get_user_model()
 
@@ -62,6 +63,46 @@ def home(request):
             },
         ]
 
+    hero = {
+        "is_sample": True,
+        "score": 828,
+        "probability_pct": 12,
+        "risk_level_key": "low",
+        "risk_label": "Low Risk",
+        "needle_angle": needle_angle(828),
+        "created_at": None,
+        "application_id": None,
+        "has_history": False,
+    }
+    has_history = False
+
+    if request.user.is_authenticated:
+        latest_pred = (
+            Prediction.objects.filter(application__user=request.user)
+            .select_related("application")
+            .order_by("-created_at")
+            .first()
+        )
+        if latest_pred:
+            has_history = True
+            risk_level_key = (latest_pred.risk_level or "low").lower()
+            risk_labels = {
+                "low": "Low Risk",
+                "medium": "Medium Risk",
+                "high": "High Risk",
+            }
+            hero = {
+                "is_sample": False,
+                "score": latest_pred.credit_score,
+                "probability_pct": round(latest_pred.default_probability * 100),
+                "risk_level_key": risk_level_key,
+                "risk_label": risk_labels.get(risk_level_key, f"{latest_pred.risk_level} Risk"),
+                "needle_angle": needle_angle(latest_pred.credit_score),
+                "created_at": latest_pred.created_at,
+                "application_id": latest_pred.application.id,
+                "has_history": True,
+            }
+
     context = {
         "model_info": model_info,
         "performance": performance,
@@ -70,9 +111,12 @@ def home(request):
         "medium_min": MEDIUM_RISK_MIN_SCORE,
         "medium_max": LOW_RISK_MIN_SCORE - 1,
         "high_max": MEDIUM_RISK_MIN_SCORE - 1,
+        "hero": hero,
+        "has_history": has_history,
     }
 
     return render(request, "home.html", context)
+
 
 
 def about_view(request):
