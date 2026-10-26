@@ -2,9 +2,11 @@ from django.conf import settings
 
 
 def currency_context(request):
-    """Provides CURRENCY_SYMBOL to all Django templates."""
+    """Provides CURRENCY_SYMBOL, SITE_URL, and PLAUSIBLE_DOMAIN to all Django templates."""
     return {
         "CURRENCY_SYMBOL": getattr(settings, "CURRENCY_SYMBOL", "$"),
+        "SITE_URL": getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/"),
+        "PLAUSIBLE_DOMAIN": getattr(settings, "PLAUSIBLE_DOMAIN", ""),
     }
 
 

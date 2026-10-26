@@ -1509,3 +1509,80 @@ class RiskWiseMasterTestSuite(TestCase):
         how_res = anon_client.get(reverse("how_it_works"))
         self.assertIn("Model Limitations", how_res.content.decode())
 
+    # -------------------------------------------------------------------------
+    # TEST 44: SEO and sharing suite (robots, sitemap, meta, OG, noindex)
+    # -------------------------------------------------------------------------
+    def test_44_seo_and_sharing_suite(self):
+        """
+        Phase 12 Task 3.6:
+        - robots.txt and sitemap.xml return 200 with the right content type
+        - sitemap lists the public pages and none of the private ones
+        - home page contains og:title, canonical and the description
+        - result page contains noindex
+        """
+        anon_client = Client()
+
+        # 1. robots.txt returns 200 with text/plain content type
+        robots_res = anon_client.get("/robots.txt")
+        self.assertEqual(robots_res.status_code, 200)
+        self.assertIn("text/plain", robots_res["Content-Type"])
+        robots_txt = robots_res.content.decode()
+        self.assertIn("User-agent: *", robots_txt)
+        self.assertIn("Disallow: /admin/", robots_txt)
+        self.assertIn("Disallow: /history/", robots_txt)
+        self.assertIn("Disallow: /profile/", robots_txt)
+        self.assertIn("Disallow: /result/", robots_txt)
+        self.assertIn("Disallow: /risk-checker/", robots_txt)
+        self.assertIn("Disallow: /view-as/", robots_txt)
+        self.assertIn("Disallow: /demo-login/", robots_txt)
+        self.assertIn("Allow: /", robots_txt)
+        self.assertIn("Sitemap:", robots_txt)
+
+        # 2. sitemap.xml returns 200 with XML content type
+        sitemap_res = anon_client.get("/sitemap.xml")
+        self.assertEqual(sitemap_res.status_code, 200)
+        self.assertIn("xml", sitemap_res["Content-Type"])
+        sitemap_content = sitemap_res.content.decode()
+
+        # Check public pages are in sitemap
+        for public_route in [
+            reverse("home"),
+            reverse("about"),
+            reverse("how_it_works"),
+            reverse("contact"),
+            reverse("login"),
+            reverse("register"),
+            reverse("privacy"),
+            reverse("terms"),
+        ]:
+            self.assertIn(f"<loc>http://testserver{public_route}</loc>", sitemap_content)
+
+        # Check private pages are NOT in sitemap
+        for private_path in [
+            "/admin/",
+            "/history/",
+            "/profile/",
+            "/result/",
+            "/risk-checker/",
+            "/view-as/",
+            "/api/",
+        ]:
+            self.assertNotIn(private_path, sitemap_content)
+
+        # 3. Home page contains og:title, canonical, and description
+        home_res = anon_client.get(reverse("home"))
+        self.assertEqual(home_res.status_code, 200)
+        home_html = home_res.content.decode()
+        self.assertIn('property="og:title"', home_html)
+        self.assertIn('rel="canonical"', home_html)
+        self.assertIn('name="description"', home_html)
+
+        # 4. Result page contains noindex
+        self.client.force_login(self.user1)
+        res_page = self.client.get(
+            reverse("result", kwargs={"application_id": self.app1.id})
+        )
+        self.assertEqual(res_page.status_code, 200)
+        self.assertIn('<meta name="robots" content="noindex">', res_page.content.decode())
+
+

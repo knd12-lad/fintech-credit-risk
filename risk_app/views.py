@@ -548,3 +548,26 @@ def privacy_view(request):
 def terms_view(request):
     """Public terms of service outlining educational scope, acceptable use, and disclaimers."""
     return render(request, "terms.html")
+
+
+def robots_txt(request):
+    """
+    Search engine crawler rules allowing public indexation while disallowing
+    internal tools, personal account views, administrative areas, and APIs.
+    """
+    site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /api/",
+        "Disallow: /history/",
+        "Disallow: /profile/",
+        "Disallow: /result/",
+        "Disallow: /risk-checker/",
+        "Disallow: /view-as/",
+        "Disallow: /demo-login/",
+        "Allow: /",
+        "",
+        f"Sitemap: {site_url}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")

@@ -1,10 +1,24 @@
 from django.contrib.auth import views as auth_views
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path
 
 from . import view_as, views
 from .forms import EmailLoginForm
+from .sitemaps import StaticViewSitemap
+
+sitemaps = {
+    "static": StaticViewSitemap,
+}
 
 urlpatterns = [
+    # SEO & Crawlers
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path(
+        "sitemap.xml",
+        sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
     path("", views.home, name="home"),
     
     path("about/", views.about_view, name="about"),

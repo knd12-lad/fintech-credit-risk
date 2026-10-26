@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.sitemaps",
     "risk_app",
 ]
 
@@ -80,6 +81,8 @@ TEMPLATES = [
 ]
 
 CURRENCY_SYMBOL = "$"
+SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+PLAUSIBLE_DOMAIN = os.getenv("PLAUSIBLE_DOMAIN", "").strip()
 
 WSGI_APPLICATION = "config.wsgi.application"
 

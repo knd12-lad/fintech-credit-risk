@@ -6,10 +6,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B132B">
-    <meta name="description" content="{% block meta_description %}RiskWise predicts loan default probability, a 300-900 credit score and a Low, Medium or High risk level using machine learning.{% endblock %}">
-    <title>{% block title %}RiskWise | Credit Risk Scoring &amp; Loan Default Prediction{% endblock %}</title>
+    {% block robots %}<meta name="robots" content="index, follow">{% endblock %}
 
-    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
+    <title>{% block title %}RiskWise | Credit Risk Scoring &amp; Loan Default Prediction{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}RiskWise predicts loan default probability, a 300-900 credit score and a Low, Medium or High risk level using machine learning.{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
+
+    {# Open Graph #}
+    <meta property="og:title" content="{% block og_title %}RiskWise | Credit Risk Scoring &amp; Loan Default Prediction{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}RiskWise predicts loan default probability, a 300-900 credit score and a Low, Medium or High risk level using machine learning.{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ SITE_URL }}{% static 'images/og-image.png' %}{% endblock %}">
+
+    {# Twitter Card #}
+    <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}RiskWise | Credit Risk Scoring &amp; Loan Default Prediction{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}RiskWise predicts loan default probability, a 300-900 credit score and a Low, Medium or High risk level using machine learning.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ SITE_URL }}{% static 'images/og-image.png' %}{% endblock %}">
+
+    {# Favicon #}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <link rel="alternate icon" href="{% static 'images/logo.svg' %}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +39,7 @@
     {# style.css = old styles (kept for now). riskwise.css = new theme, must come last #}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/riskwise.css' %}">
+    {% block analytics %}{% if PLAUSIBLE_DOMAIN %}<script defer data-domain="{{ PLAUSIBLE_DOMAIN }}" src="https://plausible.io/js/script.js"></script>{% endif %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100 {% if view_as_admin and view_as_target %}has-view-as-banner{% endif %}" {% if view_as_admin and view_as_target %}style="padding-top: 48px;"{% endif %}>
