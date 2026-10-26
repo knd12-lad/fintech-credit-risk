@@ -29,6 +29,9 @@ Traditional loan underwriting often suffers from manual delays, subjective credi
 ## 4. Key Features
 - **Credit Risk Checker**: Interactive loan assessment form capturing demographics, financial profile, loan intent, credit history, and interest rates.
 - **Real-Time ML Prediction**: Instant calculation of loan default probability, RiskWise Credit Score (300-900), and categorical risk tier (Low, Medium, High).
+- **Explainability ("Why this score?")**: Exact Shapley value decomposition over all 10 applicant inputs showing which financial factors raised or lowered the applicant's credit score compared with average applicants in the training data.
+- **What-If Scenario Simulator**: Real-time interactive loan simulator with 4 debounced sliders (income, loan amount, interest rate, employment length) computing score and probability deltas on-the-fly without database writes, rate-limited to 60 req/min.
+- **Downloadable PDF Risk Report**: One-page publication-quality PDF report built with ReportLab Platypus featuring applicant details, score summary, top influencing drivers, model governance metrics, and educational disclaimers.
 - **Borrower Self-Service Portal**: User registration, email authentication, account management, password updates, and historical loan prediction tracking.
 - **RiskWise Admin Hub**: Tailored administrative dashboard featuring portfolio KPIs, recent prediction feeds, interactive Chart.js visualizations, and compliance-ready CSV exports.
 - **Model Intelligence**: Publicly accessible model performance view documenting evaluated metrics (ROC-AUC, Precision, Recall, F1) and ROC/Confusion Matrix charts.
@@ -48,6 +51,7 @@ Traditional loan underwriting often suffers from manual delays, subjective credi
 | **Matplotlib & Seaborn** | Exploratory Data Analysis & visual evaluation artifacts | Latest |
 | **Bootstrap 5 & CSS3** | Responsive UI styling (Navy `#0B132B` & Teal `#14B8A6`) | 5.3+ |
 | **Chart.js** | Client-side reactive charts in Django admin | 4.4+ |
+| **ReportLab** | Server-side PDF risk report document generation | 5.1+ |
 | **Power BI Desktop** | Executive portfolio reporting, DAX measures & segmentation | Store Edition |
 
 ---
@@ -143,6 +147,26 @@ The relational schema in MySQL contains normalized tables:
 
 > [!NOTE]
 > The RiskWise Credit Score is an internal algorithmic risk gauge and is not an official FICO or credit bureau score.
+
+### 10.1 How Explanations Work (Exact Shapley Values)
+RiskWise implements exact, vectorized Shapley value decomposition directly without external dependencies like SHAP:
+- **Coalition Evaluation**: Evaluates all $2^{10} = 1024$ subsets of the 10 applicant inputs against a reference background of 8 representative applicants sampled deterministically (`random_state=42`) from the cleaned training dataset.
+- **Value Function**: $v(S, \text{ref})$ evaluates the trained model default probability when fields in subset $S$ take the applicant's values and remaining fields take the values of reference applicant $\text{ref}$. The marginal contribution is averaged over the 8 reference rows.
+- **Shapley Weighting**: Feature attribution follows the exact cooperative game theory formula:
+  $$\phi_i = \sum_{S \subseteq N \setminus \{i\}} \frac{|S|!(n - |S| - 1)!}{n!} [v(S \cup \{i\}) - v(S)]$$
+- **Score Point Conversion**: Probabilities are translated into credit score points via:
+  $$\text{impact\_points}_i = \text{round}(-\phi_i \times 600)$$
+  - **Positive Impact (+ pts)**: Lowers default probability $\rightarrow$ **raises** the credit score (*helps* the applicant).
+  - **Negative Impact (- pts)**: Increases default probability $\rightarrow$ **lowers** the credit score (*hurts* the applicant).
+- **Exact Additivity Guarantee**: $\sum_{i=1}^{10} \phi_i = P(\text{applicant}) - P(\text{baseline})$ within numerical tolerance ($< 10^{-6}$).
+- **Honest Limitations**: Shapley explanations reflect model-level statistical associations compared with 8 background baseline applicants; they are **observational and approximate, not causal financial advice**. Feature collinearity (e.g. loan amount vs loan-to-income) distributes credit across correlated features.
+
+### 10.2 Key Application Endpoints & URLs
+| Endpoint | Method | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `/result/<id>/` | `GET` | Authenticated Owner | Main assessment result view with credit score gauge, "Why this score?" cards, and "What if...?" simulator. |
+| `/api/what-if/<id>/` | `GET` | Authenticated Owner | Real-time simulator API (rate-limited to 60 req/min). Evaluates adjusted parameters on-the-fly with zero database writes. |
+| `/result/<id>/report.pdf` | `GET` | Authenticated Owner | Downloadable single-page PDF risk assessment report built with ReportLab Platypus. Logs an `ActivityLog` download event. |
 
 ---
 
@@ -373,6 +397,8 @@ Click the green **Reload <yourusername>.pythonanywhere.com** button at the top o
 ## 23. Known Limitations
 - **Synthetic Demo Data**: The ~200 demo applicants were generated using reproducible random sampling (`generate_demo_predictions --limit 200`) for demonstration and portfolio analytics; they do not contain real personal data.
 - **Educational / Demonstrative Model**: RiskWise is an educational/demo project. Statistical default probabilities and RiskWise credit scores (300-900) are model estimates and must not be used for real lending decisions.
+- **Observational Shapley Explanations**: Feature attributions indicate how the model's prediction changes relative to 8 background reference applicants. They do not represent causal factors in the real economy and cannot guarantee how lenders evaluate creditworthiness.
+- **Simulation Boundary Conditions**: The What-if simulator evaluates marginal effects under a fixed machine learning model without reflecting broader economic cycles, policy changes, or multivariate shifts outside the historical training distribution.
 - **Manual Power BI Authoring**: Power BI Desktop (`PBIDesktopStore.exe`) runs inside a sandboxed client environment without CLI scriptability; `RiskWise_Dashboard.pbix` must be authored manually using the provided CSV dataset (`powerbi/data/riskwise_powerbi_dataset.csv`), theme (`powerbi/RiskWise_Theme.json`), and DAX formulas (`powerbi/dax/measures.dax`).
 
 ---
