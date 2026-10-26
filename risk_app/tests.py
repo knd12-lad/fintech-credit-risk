@@ -1469,3 +1469,43 @@ class RiskWiseMasterTestSuite(TestCase):
         ).first()
         self.assertIn(str(self.app1.id), latest_log.details)
 
+    # -------------------------------------------------------------------------
+    # TEST 43: Trust pages suite (how-it-works, privacy, terms)
+    # -------------------------------------------------------------------------
+    def test_43_trust_pages_suite(self):
+        """
+        Phase 12 Task 2.5:
+        - /how-it-works/, /privacy/, and /terms/ return 200 for anonymous users
+        - Each contains its main heading
+        - Each page is linked from the footer
+        """
+        anon_client = Client()
+        trust_pages = [
+            ("how_it_works", "How RiskWise Works"),
+            ("privacy", "Privacy Policy"),
+            ("terms", "Terms of Service"),
+        ]
+
+        # Verify each trust page returns 200 and has heading
+        for url_name, heading in trust_pages:
+            url = reverse(url_name)
+            response = anon_client.get(url)
+            self.assertEqual(
+                response.status_code,
+                200,
+                f"Expected 200 for {url_name}, got {response.status_code}",
+            )
+            content = response.content.decode()
+            self.assertIn(heading, content)
+
+        # Verify links in the footer of public pages (e.g. home page)
+        home_res = anon_client.get(reverse("home"))
+        home_content = home_res.content.decode()
+        self.assertIn(reverse("how_it_works"), home_content)
+        self.assertIn(reverse("privacy"), home_content)
+        self.assertIn(reverse("terms"), home_content)
+
+        # Verify Model Limitations section exists on how-it-works
+        how_res = anon_client.get(reverse("how_it_works"))
+        self.assertIn("Model Limitations", how_res.content.decode())
+

@@ -532,3 +532,19 @@ class RiskWisePasswordChangeView(PasswordChangeView):
             "Your password has been changed successfully.",
         )
         return super().form_valid(form)
+
+
+def how_it_works_view(request):
+    """Public guide explaining the credit risk assessment process, model metrics, and FAQ."""
+    model_info = ModelInfo.objects.filter(is_active=True).first()
+    return render(request, "how_it_works.html", {"model_info": model_info})
+
+
+def privacy_view(request):
+    """Public privacy policy describing data collection, usage, cookies, and deletion."""
+    return render(request, "privacy.html")
+
+
+def terms_view(request):
+    """Public terms of service outlining educational scope, acceptable use, and disclaimers."""
+    return render(request, "terms.html")

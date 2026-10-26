@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}How It Works | RiskWise Credit Risk Platform{% endblock %}
+{% block meta_description %}Learn how RiskWise evaluates loan applications using machine learning, exact Shapley explainability, and risk modeling.{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-dark text-white position-relative" style="background: #0B132B !important;">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge mb-3 px-3 py-2 text-uppercase fw-semibold" style="background: rgba(20, 184, 166, 0.2); color: #14B8A6; letter-spacing: 1px;">
+                    Algorithm &amp; Methodology
+                </span>
+                <h1 class="display-5 fw-bold mb-3 text-white">How RiskWise Works</h1>
+                <p class="lead text-light opacity-75 mb-0" style="max-width: 650px;">
+                    A transparent look into our machine learning credit assessment engine, input features, exact Shapley explainability, and scoring methodology.
+                </p>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-end">
+                <div class="p-4 rounded-4 text-start border border-secondary border-opacity-25" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-warning">
+                        <i class="bi bi-shield-check fs-4"></i>
+                        <span class="fw-bold">Transparent Scoring</span>
+                    </div>
+                    <small class="text-light opacity-75 d-block">
+                        Zero black-box decisions. Every credit prediction is deconstructed into individual score drivers with exact cooperative game theory.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="py-5" style="background: #F4F6F9;">
+    <div class="container">
+
+        <!-- 3-Step Process -->
+        <div class="mb-5">
+            <div class="text-center mb-4">
+                <span class="text-uppercase fw-bold text-teal small" style="color: #0F766E; letter-spacing: 1px;">Step-by-Step Flow</span>
+                <h2 class="fw-bold mt-1" style="color: #0B132B;">From Application to Clear Explanation</h2>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4">
+                        <div class="rounded-3 p-3 mb-3 d-inline-block" style="background: rgba(15, 118, 110, 0.1); color: #0F766E; width: fit-content;">
+                            <i class="bi bi-file-earmark-person fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold" style="color: #0B132B;">1. Profile &amp; Loan Details</h5>
+                        <p class="text-secondary small mb-0">
+                            The borrower submits 10 financial and demographic parameters including income, loan amount, interest rate, employment duration, and credit history length.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4">
+                        <div class="rounded-3 p-3 mb-3 d-inline-block" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6; width: fit-content;">
+                            <i class="bi bi-cpu fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold" style="color: #0B132B;">2. ML Pipeline &amp; Scoring</h5>
+                        <p class="text-secondary small mb-0">
+                            Data is normalized via our ColumnTransformer with feature engineering (loan-to-income and interest-to-income ratios) and evaluated by our tuned Random Forest model.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4">
+                        <div class="rounded-3 p-3 mb-3 d-inline-block" style="background: rgba(245, 158, 11, 0.1); color: #D97706; width: fit-content;">
+                            <i class="bi bi-speedometer2 fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold" style="color: #0B132B;">3. Score &amp; Shapley Breakdown</h5>
+                        <p class="text-secondary small mb-0">
+                            The model computes default probability and derives a 300–900 credit score with an exact Shapley value breakdown showing exactly why the score was assigned.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Machine Learning Model & Metrics -->
+        <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-6">
+                        <span class="text-uppercase fw-bold text-teal small" style="color: #0F766E; letter-spacing: 1px;">Model Specifications</span>
+                        <h3 class="fw-bold mt-1 mb-3" style="color: #0B132B;">Trained Random Forest Classifier</h3>
+                        <p class="text-secondary mb-3">
+                            RiskWise utilizes a supervised Random Forest ensemble trained on a verified lending benchmark dataset comprising <strong>32,409 historical loan records</strong>. The classifier optimizes Gini impurity across 200 decision trees to produce calibrated probability outputs.
+                        </p>
+                        <ul class="list-unstyled text-secondary small mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Ensemble Architecture:</strong> 200 estimators, max depth 16, min samples leaf 2</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Deterministic Preprocessing:</strong> StandardScaler for numerical values, One-Hot &amp; Ordinal encoding</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Audited Persistence:</strong> Model weights and preprocessing pipelines are serialised together</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="p-4 rounded-4" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                            <h6 class="text-muted text-uppercase fw-bold mb-3 small" style="letter-spacing: 0.5px;">Active Model Performance</h6>
+                            <div class="row g-3 text-center">
+                                <div class="col-6">
+                                    <div class="p-3 bg-white rounded-3 shadow-sm border">
+                                        <div class="fs-3 fw-bold text-dark">
+                                            {% if model_info %}{{ model_info.roc_auc|floatformat:4 }}{% else %}0.9350{% endif %}
+                                        </div>
+                                        <small class="text-muted fw-semibold">ROC-AUC</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-white rounded-3 shadow-sm border">
+                                        <div class="fs-3 fw-bold" style="color: #0F766E;">
+                                            {% if model_info %}{% widthratio model_info.accuracy 1 100 %}%{% else %}93.5%{% endif %}
+                                        </div>
+                                        <small class="text-muted fw-semibold">Accuracy</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-white rounded-3 shadow-sm border">
+                                        <div class="fs-3 fw-bold text-dark">
+                                            {% if model_info %}{% widthratio model_info.recall 1 100 %}%{% else %}72.1%{% endif %}
+                                        </div>
+                                        <small class="text-muted fw-semibold">Recall</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-white rounded-3 shadow-sm border">
+                                        <div class="fs-3 fw-bold text-dark">32,409</div>
+                                        <small class="text-muted fw-semibold">Training Records</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inputs Used & Score Derivation -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <h4 class="fw-bold mb-3" style="color: #0B132B;">Input Features (10 Fields)</h4>
+                    <p class="text-secondary small mb-3">
+                        The model takes 10 primary inputs from the applicant plus 2 automatically engineered ratios:
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr><th>Field</th><th>Description</th><th>Format / Range</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><code>person_age</code></td><td>Applicant Age</td><td>18 – 100 years</td></tr>
+                                <tr><td><code>person_income</code></td><td>Annual Gross Income</td><td>Positive Decimal ($)</td></tr>
+                                <tr><td><code>person_emp_length</code></td><td>Employment Duration</td><td>0 – 60 years</td></tr>
+                                <tr><td><code>person_home_ownership</code></td><td>Home Ownership Status</td><td>RENT, OWN, MORTGAGE, OTHER</td></tr>
+                                <tr><td><code>loan_intent</code></td><td>Purpose of Loan</td><td>Education, Medical, Venture, etc.</td></tr>
+                                <tr><td><code>loan_grade</code></td><td>Loan Credit Tier</td><td>A to G</td></tr>
+                                <tr><td><code>loan_amnt</code></td><td>Requested Loan Principal</td><td>Positive Decimal ($)</td></tr>
+                                <tr><td><code>loan_int_rate</code></td><td>Annual Interest Rate</td><td>0.0% – 40.0%</td></tr>
+                                <tr><td><code>cb_person_default_on_file</code></td><td>Prior Default on File</td><td>Y (Yes) / N (No)</td></tr>
+                                <tr><td><code>cb_person_cred_hist_length</code></td><td>Credit History Length</td><td>0 – 60 years</td></tr>
+                                <tr class="table-secondary"><td><code>loan_to_income</code></td><td>Loan-to-Income Ratio</td><td>Engineered: <code>loan_amnt / income</code></td></tr>
+                                <tr class="table-secondary"><td><code>interest_to_income</code></td><td>Annual Interest Burden</td><td>Engineered: <code>(loan * rate) / income</code></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <h4 class="fw-bold mb-3" style="color: #0B132B;">300–900 Score &amp; Risk Bands</h4>
+                    <p class="text-secondary small mb-3">
+                        The predicted default probability $P(\text{default})$ is mapped linearly into an intuitive 300 to 900 scoring scale:
+                    </p>
+                    <div class="p-3 rounded-3 mb-3 text-center border" style="background: #F8FAFC;">
+                        <code class="fs-6 fw-bold text-dark">Credit Score = round(900 - (Probability × 600))</code>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="p-2 px-3 rounded-3 d-flex justify-content-between align-items-center" style="background: #D1FAE5; color: #065F46;">
+                            <div><strong>Low Risk:</strong> 780 – 900</div>
+                            <span class="badge bg-success">Default Prob &lt; 20%</span>
+                        </div>
+                        <div class="p-2 px-3 rounded-3 d-flex justify-content-between align-items-center" style="background: #FEF3C7; color: #92400E;">
+                            <div><strong>Medium Risk:</strong> 600 – 779</div>
+                            <span class="badge bg-warning text-dark">Default Prob 20% – 50%</span>
+                        </div>
+                        <div class="p-2 px-3 rounded-3 d-flex justify-content-between align-items-center" style="background: #FEE2E2; color: #991B1B;">
+                            <div><strong>High Risk:</strong> 300 – 599</div>
+                            <span class="badge bg-danger">Default Prob &ge; 50%</span>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mt-4 mb-2" style="color: #0B132B;">Why This Score? (Exact Shapley)</h5>
+                    <p class="text-secondary small mb-0">
+                        RiskWise computes exact Shapley values across all 1,024 feature coalitions averaged over 8 baseline reference applicants. Each input is converted to score points ($\text{impact\_points} = \text{round}(-\phi_i \times 600)$), showing the exact degree to which income, rate, or grade helped or hurt your score.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Limitations -->
+        <div class="card border-0 shadow-sm rounded-4 mb-5 border-start border-4 border-warning">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-2 text-warning">
+                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <h5 class="fw-bold mb-0 text-dark">Model Limitations</h5>
+                </div>
+                <p class="text-secondary small mb-0">
+                    The machine learning model was trained on a public lending dataset denominated in US dollars and has not been validated on Indian borrowers or localized domestic credit parameters. Age is an input in the historical dataset, and all outputs, scores, and probabilities generated by RiskWise are statistical model estimates intended exclusively for demonstrative and educational use.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ Section (8 Honest Questions) -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5">
+            <div class="text-center mb-4">
+                <span class="text-uppercase fw-bold text-teal small" style="color: #0F766E; letter-spacing: 1px;">Transparency</span>
+                <h3 class="fw-bold mt-1" style="color: #0B132B;">Frequently Asked Questions</h3>
+                <p class="text-muted small">Candid, transparent answers regarding RiskWise data, modeling, and accuracy.</p>
+            </div>
+
+            <div class="accordion accordion-flush" id="faqAccordion">
+                <!-- Q1 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq1-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            1. Is this real credit scoring?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            No. RiskWise is an educational technology demonstration platform. The 300–900 credit score is an internal algorithmic risk index derived from a trained Random Forest classifier. It is not an official FICO, CIBIL, Experian, or credit bureau score.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq2-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            2. Can I use it for a real loan decision?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            No. RiskWise outputs are strictly statistical estimates and must never be used by lenders, borrowers, or underwriting entities for actual loan origination, credit extension, pricing, or regulatory compliance.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq3-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            3. Which data do you store?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            We store registered user credentials (name, email, PBKDF2-hashed password), the loan application details you submit, generated prediction records, inbound contact messages, and security audit activity logs with IP addresses. We never store payment data or external credit bureau accounts.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq4-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            4. Why is age an input?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            Age was included in the historical open-source loan performance dataset used to train our models. While real-world lending laws (such as the Equal Credit Opportunity Act in the US) strictly regulate or prohibit age discrimination in lending, our academic pipeline utilizes the available benchmark features.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q5 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq5-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            5. How accurate is it?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            The trained model achieves 93.5% test accuracy and an ROC-AUC of 0.935 on held-out test splits from the historical dataset. However, statistical accuracy on benchmark data does not imply real-world predictive validity in current or localized lending markets.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q6 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq6-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                            6. How is the 300–900 credit score calculated?
+                        </button>
+                    </h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            The score linearly transforms the model's continuous default probability: <code>round(900 - Probability × 600)</code>. A 0% estimated default risk produces 900 points, while a 100% estimated default risk produces 300 points.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q7 -->
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header" id="faq7-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                            7. What happens to my data if I delete my account or request deletion?
+                        </button>
+                    </h2>
+                    <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            You can request account deletion at any time via the Contact page. Upon processing, all your personal account records, historical loan applications, and associated predictions are permanently purged from the database.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q8 -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq8-heading">
+                        <button class="accordion-button collapsed fw-semibold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                            8. How does the What-if simulator work?
+                        </button>
+                    </h2>
+                    <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small">
+                            The What-if simulator evaluates marginal adjustments to your loan parameters (income, loan amount, interest rate, employment length) in real-time. It runs the trained machine learning pipeline on the modified inputs and calculates score and probability deltas without saving any rows to the database.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

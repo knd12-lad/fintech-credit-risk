@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Privacy Policy | RiskWise{% endblock %}
+{% block meta_description %}Learn how RiskWise handles and protects your data, account credentials, cookies, and privacy rights.{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="alert alert-warning border-warning d-flex align-items-center gap-2 mb-4 py-2 px-3 small rounded-3" role="alert">
+        <i class="bi bi-info-circle-fill text-warning"></i>
+        <span>Draft text, please have it reviewed before public launch.</span>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 mb-5" style="background: #FFFFFF;">
+        <div class="border-bottom pb-4 mb-4">
+            <span class="badge px-3 py-2 text-uppercase fw-semibold mb-2" style="background: rgba(15, 118, 110, 0.1); color: #0F766E;">
+                Compliance &amp; Data Governance
+            </span>
+            <h1 class="display-6 fw-bold mb-2" style="color: #0B132B;">Privacy Policy</h1>
+            <p class="text-muted small mb-0">Last updated: October 26, 2026</p>
+        </div>
+
+        <div class="content text-secondary" style="line-height: 1.75;">
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">1. Overview</h4>
+                <p>
+                    RiskWise is an educational and demonstrative FinTech credit risk scoring platform. We are dedicated to transparent, auditable data handling. This Privacy Policy details the exact data collected by our application, how it is processed by our machine learning models, and how your privacy is protected.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">2. Data We Collect</h4>
+                <p>RiskWise only collects information directly required to provide account services and compute credit risk predictions:</p>
+                <ul>
+                    <li><strong>Account Credentials:</strong> Full name, unique email address, and securely hashed passwords using PBKDF2 with SHA-256 encryption. We never store plain-text passwords.</li>
+                    <li><strong>Loan Assessment Data:</strong> Demographic and financial inputs submitted through the Risk Checker, including age, annual income, employment length, home ownership status, loan purpose, requested loan amount, loan grade, interest rate, prior defaults, and credit history length.</li>
+                    <li><strong>Prediction Records:</strong> Estimated default probabilities, custom 300–900 credit scores, and risk classifications linked to your borrower profile.</li>
+                    <li><strong>Activity Logs:</strong> Security audit logs recording events such as logins, password updates, risk assessments, PDF report downloads, and administrative support sessions, alongside timestamps and client IP addresses.</li>
+                    <li><strong>Contact Inquiries:</strong> Name, email address, subject, and message submitted through our contact form.</li>
+                </ul>
+            </section>
+
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">3. Purposes of Processing</h4>
+                <p>We process your data exclusively for:</p>
+                <ul>
+                    <li>Executing feature engineering, machine learning inference, and Shapley explainability algorithms.</li>
+                    <li>Enabling your self-service Borrower Portal to view past application assessments and download PDF risk summaries.</li>
+                    <li>Maintaining security, preventing automated abuse, rate-limiting API endpoints, and auditing administrative actions.</li>
+                    <li>Responding to user inquiries submitted via our contact channel.</li>
+                </ul>
+            </section>
+
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">4. Cookies and Local Storage</h4>
+                <p>RiskWise uses only necessary operational cookies:</p>
+                <ul>
+                    <li><code>sessionid</code>: Standard encrypted Django session cookie to maintain user authentication.</li>
+                    <li><code>csrftoken</code>: Security cookie to protect against Cross-Site Request Forgery (CSRF) on form submissions.</li>
+                    <li><code>rw_admin_sessionid</code>: Dedicated session cookie used exclusively by administrators during audited support view-as sessions.</li>
+                    <li><strong>Analytics:</strong> No third-party tracking or advertising cookies are utilized. Optional privacy-friendly analytics (such as Plausible) operate without cookies if enabled.</li>
+                </ul>
+            </section>
+
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">5. Administrative Support &amp; View-As Mode</h4>
+                <p>
+                    To provide technical assistance, authorized platform administrators have the ability to view borrower dashboards in a strictly <strong>read-only</strong> support mode. During a view-as session, administrators cannot submit new applications, modify profile details, or alter passwords. Furthermore, every view-as start and exit event is immutably logged in the <code>ActivityLog</code> table with the administrator's ID, target user ID, timestamp, and IP address.
+                </p>
+            </section>
+
+            <section class="mb-4">
+                <h4 class="fw-bold text-dark mb-2">6. Data Retention and Deletion Requests</h4>
+                <p>
+                    We retain borrower application history until you request account removal. You have the right to request full deletion of your account and all associated loan applications and prediction results at any time.
+                </p>
+                <p>
+                    To request deletion, please contact us through our <a href="{% url 'contact' %}" class="fw-semibold text-teal" style="color: #0F766E;">Contact Page</a>. Upon verification, your user account, loan applications, and prediction records will be permanently removed from our active database.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

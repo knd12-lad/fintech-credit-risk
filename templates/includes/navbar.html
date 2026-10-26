@@ -57,6 +57,14 @@
                         </a>
                     </li>
 
+                    <!-- How It Works -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'how_it_works' %}active{% endif %}"
+                           href="{% url 'how_it_works' %}">
+                            How It Works
+                        </a>
+                    </li>
+
                     
 
                     {% if user.is_authenticated %}
