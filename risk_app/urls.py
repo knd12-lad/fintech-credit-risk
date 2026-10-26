@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import view_as, views
 from .forms import EmailLoginForm
 
 urlpatterns = [
@@ -47,5 +47,7 @@ urlpatterns = [
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 
-    
+    # Admin view-as hand-off & exit (non-admin routes)
+    path("view-as/enter/", view_as.view_as_enter, name="view_as_enter"),
+    path("view-as/exit/", view_as.view_as_exit, name="view_as_exit"),
 ]

@@ -12,14 +12,16 @@ from pathlib import Path
 import re
 import tempfile
 from unittest.mock import patch
+from datetime import timedelta
 from decimal import Decimal
 from django.core.management import call_command
-from django.core import mail
+from django.core import mail, signing
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.conf import settings
-from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage
+from django.utils import timezone
+from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage, ActivityLog
 from risk_app.utils import needle_angle
 from ml.predict import predict_credit_risk
 
@@ -936,4 +938,295 @@ class RiskWiseMasterTestSuite(TestCase):
         res_user1 = self.client.get(reverse("home"))
         self.assertEqual(res_user1.context["hero"]["score"], 809)
         self.assertNotEqual(res_user1.context["hero"]["score"], 420)
+
+    # -------------------------------------------------------------------------
+    # TEST 33: Admin view-as picker page permissions (2.8 a)
+    # -------------------------------------------------------------------------
+    def test_33_admin_view_as_picker_permissions(self):
+        """
+        2.8 a: A superuser opens the picker (200); a normal user gets 403 or a redirect.
+        """
+        # Superuser opens picker
+        client_admin = Client()
+        client_admin.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        res_admin = client_admin.get("/admin/view-as/")
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertContains(res_admin, "View Website as User")
+        self.assertIn("page_obj", res_admin.context)
+        self.assertContains(res_admin, self.user1.email)
+
+        # Normal user gets 403 or redirect
+        client_user = Client()
+        client_user.post(
+            reverse("login"),
+            {"username": self.user1.email, "password": "StrongPassword123!"},
+        )
+        res_user = client_user.get("/admin/view-as/")
+        self.assertIn(res_user.status_code, (403, 302))
+
+        # Anonymous visitor gets redirect or 403
+        res_anon = Client().get("/admin/view-as/")
+        self.assertIn(res_anon.status_code, (403, 302))
+
+    # -------------------------------------------------------------------------
+    # TEST 34: Full view-as flow (2.8 b)
+    # -------------------------------------------------------------------------
+    def test_34_view_as_full_flow(self):
+        """
+        2.8 b: Full flow: admin start -> enter -> home shows the banner and
+        the TARGET's latest score; the admin session cookie is untouched.
+        """
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        self.assertIn("rw_admin_sessionid", client.cookies)
+        admin_cookie_val = client.cookies["rw_admin_sessionid"].value
+
+        # Admin start
+        res_start = client.post(f"/admin/view-as/{self.user1.pk}/start/")
+        self.assertEqual(res_start.status_code, 303)
+        redirect_url = res_start["Location"]
+        self.assertIn("/view-as/enter/?t=", redirect_url)
+
+        # Enter view-as (non-admin route)
+        res_enter = client.get(redirect_url)
+        self.assertEqual(res_enter.status_code, 302)
+        self.assertEqual(res_enter["Location"], reverse("home"))
+
+        # Admin session cookie must be completely untouched
+        self.assertEqual(client.cookies["rw_admin_sessionid"].value, admin_cookie_val)
+
+        # GET Home page: banner and TARGET's latest score must display
+        res_home = client.get(reverse("home"))
+        self.assertEqual(res_home.status_code, 200)
+        self.assertContains(res_home, "Admin view: you are seeing RiskWise as")
+        self.assertContains(res_home, self.user1.email)
+        self.assertContains(res_home, "This session is read-only.")
+        self.assertContains(res_home, "Exit and return to admin")
+        self.assertFalse(res_home.context["hero"]["is_sample"])
+        self.assertEqual(res_home.context["hero"]["score"], self.pred1.credit_score)
+
+    # -------------------------------------------------------------------------
+    # TEST 35: View-as read-only middleware blocks mutations (2.8 c)
+    # -------------------------------------------------------------------------
+    def test_35_view_as_read_only_blocks_mutations(self):
+        """
+        2.8 c: During view-as, POST to the risk checker creates NO LoanApplication,
+        and the profile edit, contact form, and normal logout POSTs are blocked.
+        """
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        res_start = client.post(f"/admin/view-as/{self.user1.pk}/start/")
+        client.get(res_start["Location"])
+
+        # 1. POST to risk checker
+        app_count_before = LoanApplication.objects.count()
+        res_risk = client.post(reverse("risk_checker"), {
+            "loan_type": self.loan_types["EDUCATION"].pk,
+            "full_name": "Blocked Assessment",
+            "age": 30,
+            "annual_income": "90000.00",
+            "employment_length": 6.0,
+            "home_ownership": "OWN",
+            "loan_grade": "A",
+            "loan_amount": "20000.00",
+            "interest_rate": 7.0,
+            "previous_default": "N",
+            "credit_history_length": 6,
+        })
+        self.assertEqual(res_risk.status_code, 302)
+        self.assertEqual(LoanApplication.objects.count(), app_count_before)
+
+        # 2. POST to edit profile
+        name_before = self.user1.full_name
+        res_profile = client.post(reverse("edit_profile"), {"full_name": "Tampered Name"})
+        self.assertEqual(res_profile.status_code, 302)
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.full_name, name_before)
+
+        # 3. POST to contact form
+        contact_count_before = ContactMessage.objects.count()
+        res_contact = client.post(reverse("contact"), {
+            "name": "Target",
+            "email": "target@example.com",
+            "subject": "Blocked Message",
+            "message": "This message should never be saved.",
+        })
+        self.assertEqual(res_contact.status_code, 302)
+        self.assertEqual(ContactMessage.objects.count(), contact_count_before)
+
+        # 4. Normal /logout/ is also blocked
+        res_logout = client.post(reverse("logout"))
+        self.assertEqual(res_logout.status_code, 302)
+        res_check = client.get(reverse("home"))
+        self.assertTrue(res_check.context["user"].is_authenticated)
+
+    # -------------------------------------------------------------------------
+    # TEST 36: View-as exit flow and activity log (2.8 d)
+    # -------------------------------------------------------------------------
+    def test_36_view_as_exit_flow(self):
+        """
+        2.8 d: Exit: website session logged out, admin session still logged in,
+        ActivityLog has both started and ended entries.
+        """
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        res_start = client.post(f"/admin/view-as/{self.user1.pk}/start/")
+        client.get(res_start["Location"])
+
+        # Exit view-as
+        res_exit = client.post(reverse("view_as_exit"))
+        self.assertEqual(res_exit.status_code, 302)
+        self.assertEqual(res_exit["Location"], "/admin/")
+
+        # Website session must be logged out
+        res_home = client.get(reverse("home"))
+        self.assertFalse(res_home.context["user"].is_authenticated)
+
+        # Admin session must still be logged in
+        res_admin = client.get("/admin/")
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertTrue(res_admin.context["user"].is_authenticated)
+        self.assertEqual(res_admin.context["user"].email, self.admin_user.email)
+
+        # ActivityLog has both started and ended entries
+        self.assertTrue(
+            ActivityLog.objects.filter(action="Admin view-as started", user=self.admin_user).exists()
+        )
+        self.assertTrue(
+            ActivityLog.objects.filter(action="Admin view-as ended", user=self.admin_user).exists()
+        )
+
+    # -------------------------------------------------------------------------
+    # TEST 37: Target rules - admin, staff, inactive, self rejected (2.8 e)
+    # -------------------------------------------------------------------------
+    def test_37_view_as_target_rules_rejected(self):
+        """
+        2.8 e: Target rules: admin, staff, inactive and self targets are rejected.
+        """
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+
+        staff_user = User.objects.create_user(
+            email="staff_test@example.com",
+            password="StaffPassword123!",
+            role="USER",
+            is_staff=True,
+        )
+        inactive_user = User.objects.create_user(
+            email="inactive_test@example.com",
+            password="InactivePassword123!",
+            role="USER",
+            is_active=False,
+        )
+        other_admin = User.objects.create_user(
+            email="other_admin_test@example.com",
+            password="OtherAdmin123!",
+            role="ADMIN",
+            is_staff=True,
+        )
+
+        for invalid_target in [self.admin_user, staff_user, inactive_user, other_admin]:
+            res_start = client.post(f"/admin/view-as/{invalid_target.pk}/start/")
+            self.assertEqual(res_start.status_code, 302)
+            self.assertEqual(res_start["Location"], reverse("admin:view_as"))
+
+            # Direct token entry rejection
+            tok = signing.dumps(
+                {"admin": self.admin_user.pk, "target": invalid_target.pk},
+                salt="rw-view-as",
+            )
+            res_enter = client.get(f"/view-as/enter/?t={tok}")
+            self.assertEqual(res_enter.status_code, 403)
+
+    # -------------------------------------------------------------------------
+    # TEST 38: Token security and validation (2.8 f)
+    # -------------------------------------------------------------------------
+    def test_38_view_as_token_validation_tests(self):
+        """
+        2.8 f: Token tests: expired token, tampered token, token without the admin
+        cookie, and token with a different admin's cookie are all rejected.
+        """
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+
+        valid_tok = signing.dumps(
+            {"admin": self.admin_user.pk, "target": self.user1.pk},
+            salt="rw-view-as",
+        )
+
+        # 1. Tampered token
+        res_tampered = client.get("/view-as/enter/?t=tampered:token:signature")
+        self.assertEqual(res_tampered.status_code, 403)
+
+        # 2. Expired token
+        with patch("django.core.signing.loads", side_effect=signing.SignatureExpired("Expired")):
+            res_expired = client.get(f"/view-as/enter/?t={valid_tok}")
+            self.assertEqual(res_expired.status_code, 403)
+
+        # 3. Token without admin cookie
+        client_no_cookie = Client()
+        res_no_cookie = client_no_cookie.get(f"/view-as/enter/?t={valid_tok}")
+        self.assertEqual(res_no_cookie.status_code, 403)
+
+        # 4. Token with a different admin's cookie
+        other_admin = User.objects.create_superuser(
+            email="admin2_tok@riskwise.test",
+            password="AdminPassword123!",
+            full_name="Admin Two",
+        )
+        client_diff_admin = Client()
+        client_diff_admin.post(
+            "/admin/login/",
+            {"username": other_admin.email, "password": "AdminPassword123!"},
+        )
+        res_diff_admin = client_diff_admin.get(f"/view-as/enter/?t={valid_tok}")
+        self.assertEqual(res_diff_admin.status_code, 403)
+
+    # -------------------------------------------------------------------------
+    # TEST 39: Target last_login and ActivityLog preserved (2.8 g)
+    # -------------------------------------------------------------------------
+    def test_39_view_as_target_last_login_and_activity_log_preserved(self):
+        """
+        2.8 g: The target's last_login is unchanged after the flow and no
+        "Login" ActivityLog row was created for the target.
+        """
+        fixed_time = timezone.now() - timedelta(days=5)
+        self.user1.last_login = fixed_time
+        self.user1.save(update_fields=["last_login"])
+
+        client = Client()
+        client.post(
+            "/admin/login/",
+            {"username": self.admin_user.email, "password": "AdminPassword123!"},
+        )
+        res_start = client.post(f"/admin/view-as/{self.user1.pk}/start/")
+        res_enter = client.get(res_start["Location"])
+        self.assertEqual(res_enter.status_code, 302)
+
+        self.user1.refresh_from_db()
+        self.assertEqual(self.user1.last_login, fixed_time)
+
+        # No "Login" ActivityLog created for the target
+        target_login_logs = ActivityLog.objects.filter(
+            user=self.user1, action__icontains="Login"
+        )
+        self.assertEqual(target_login_logs.count(), 0)
 

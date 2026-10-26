@@ -123,9 +123,27 @@
                 </div>
 
                 <div class="rw-topbar-right">
-                    <a href="{% url 'home' %}" class="rw-pill-btn" target="_blank">
-                        <i class="bi bi-globe2"></i> View Website
-                    </a>
+                    <div class="rw-topbar-dropdown-container" style="position: relative;">
+                        <button class="rw-pill-btn" id="adminViewWebsiteDropdownBtn" type="button" aria-expanded="false" style="cursor: pointer;">
+                            <i class="bi bi-globe2"></i>
+                            <span>View Website</span>
+                            <i class="bi bi-caret-down-fill rw-website-caret-icon" style="font-size: 0.72rem; transition: transform 0.2s; margin-left: 2px;"></i>
+                        </button>
+
+                        <div class="rw-topbar-dropdown-menu" id="adminViewWebsiteDropdownMenu"
+                            style="display: none; position: absolute; right: 0; top: calc(100% + 8px); min-width: 220px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; box-shadow: 0 10px 30px rgba(11, 19, 43, 0.14); padding: 6px; z-index: 1050;">
+                            <a href="{% url 'home' %}" target="_blank" class="rw-dropdown-item"
+                                style="display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; color: #1E293B; text-decoration: none; font-weight: 500; transition: background 0.15s;">
+                                <i class="bi bi-box-arrow-up-right" style="font-size: 1rem; color: #64748B;"></i>
+                                <span>Open website (as visitor)</span>
+                            </a>
+                            <a href="{% url 'admin:view_as' %}" class="rw-dropdown-item"
+                                style="display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; color: #1E293B; text-decoration: none; font-weight: 500; transition: background 0.15s;">
+                                <i class="bi bi-person-badge" style="font-size: 1.05rem; color: #64748B;"></i>
+                                <span>View website as a user...</span>
+                            </a>
+                        </div>
+                    </div>
                     {% if user.is_authenticated %}
                     <div class="rw-topbar-dropdown-container" style="position: relative;">
                         <button class="rx-user-btn" id="adminUserDropdownBtn" type="button" aria-expanded="false"
@@ -382,6 +400,26 @@
                     if (!menu.contains(e.target) && !btn.contains(e.target)) {
                         menu.style.display = 'none';
                         const caret = btn.querySelector('.rw-caret-icon');
+                        if (caret) caret.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+
+            // Website Dropdown Toggle
+            const webBtn = document.getElementById('adminViewWebsiteDropdownBtn');
+            const webMenu = document.getElementById('adminViewWebsiteDropdownMenu');
+            if (webBtn && webMenu) {
+                webBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const isOpen = webMenu.style.display === 'block';
+                    webMenu.style.display = isOpen ? 'none' : 'block';
+                    const caret = webBtn.querySelector('.rw-website-caret-icon');
+                    if (caret) caret.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+                document.addEventListener('click', function (e) {
+                    if (!webMenu.contains(e.target) && !webBtn.contains(e.target)) {
+                        webMenu.style.display = 'none';
+                        const caret = webBtn.querySelector('.rw-website-caret-icon');
                         if (caret) caret.style.transform = 'rotate(0deg)';
                     }
                 });

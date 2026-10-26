@@ -382,9 +382,19 @@ Click the green **Reload <yourusername>.pythonanywhere.com** button at the top o
 - Cross-Site Request Forgery (CSRF) tokens protect all state-changing POST requests.
 - Strict user authorization ensures borrowers can view only their own prediction records.
 - All administrative routes require verified staff credentials.
+- Administrators can view an account's pages in read-only mode for support purposes; every such access is logged.
 
 ---
 
-## 24. Credits & References
+## 24. Admin: View Website as a User
+RiskWise includes an audited "View Website as User" capability designed for borrower support:
+- **Read-Only Mode**: During a view-as session, all state-modifying actions (assessments, profile edits, password changes, contact inquiries) are strictly blocked by `ViewAsReadOnlyMiddleware`.
+- **Audited**: Every view-as start and exit event is immutably recorded in the compliance `ActivityLog` table with the administrator's identity, target user ID, timestamp, and IP address.
+- **30-Minute Time Limit**: Hand-off tokens expire in 30 seconds, and the active session automatically expires after 30 minutes.
+- **Dual-Session Isolation**: Backed by `SplitSessionMiddleware`, the administrator's admin session cookie (`rw_admin_sessionid`) remains active and untouched when entering, browsing, or exiting the borrower view.
+
+---
+
+## 25. Credits & References
 - Dataset: Credit Risk Dataset (Kaggle / Lending Club derived loan records).
-- Frameworks: Django Project, Scikit-learn, Bootstrap, Chart.js.
+- Frameworks: Django Project, Scikit-learn, Bootstrap, Chart.js.

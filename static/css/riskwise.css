@@ -929,3 +929,8 @@ section[id] {
         transition: none;
     }
 }
+
+/* Admin View-as banner sticky-top offset */
+body.has-view-as-banner .rx-header.sticky-top {
+    top: 48px;
+}

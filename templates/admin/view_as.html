@@ -1,0 +1,110 @@
+{% extends "admin/base.html" %}
+{% load static humanize %}
+
+{% block title %}View Website as User | {{ site_title|default:"RiskWise Admin" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="rw-breadcrumb-bar">
+    <a href="{% url 'admin:index' %}"><i class="bi bi-house-door-fill"></i> Admin</a>
+    <span class="rw-bc-sep">/</span>
+    <span class="rw-bc-title">View Website as User</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="rw-dashboard-container">
+    <div class="rw-hero-banner" style="margin-bottom: 24px;">
+        <div class="rw-hero-text">
+            <h1>View Website as User</h1>
+            <p>Select an active borrower account to preview the website from their perspective in read-only mode.</p>
+        </div>
+    </div>
+
+    <!-- Search Box -->
+    <div style="background: #FFFFFF; border: 1px solid var(--rx-border); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--rx-shadow);">
+        <form method="get" action="" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0;">
+            <div style="position: relative; flex: 1 1 300px; max-width: 480px;">
+                <i class="bi bi-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--rx-muted);"></i>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search active users by name or email..."
+                       style="width: 100%; height: 40px; padding: 0 14px 0 38px; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 10px; color: var(--rx-text); font-family: var(--rx-font-body); font-size: 0.9rem; box-sizing: border-box;">
+            </div>
+            <button type="submit" class="rw-btn rw-btn-primary" style="height: 40px; padding: 0 20px; font-size: 0.88rem;">Search</button>
+            {% if search_query %}
+                <a href="{% url 'admin:view_as' %}" class="rw-btn rw-btn-glass" style="height: 40px; padding: 0 16px; font-size: 0.88rem; display: inline-flex; align-items: center;">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Table of Users -->
+    <div style="background: #FFFFFF; border: 1px solid var(--rx-border); border-radius: 12px; overflow: hidden; box-shadow: var(--rx-shadow);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 1px solid var(--rx-border);">
+                        <th style="padding: 12px 18px; font-weight: 600; color: var(--rx-text-dark);">Name</th>
+                        <th style="padding: 12px 18px; font-weight: 600; color: var(--rx-text-dark);">Email</th>
+                        <th style="padding: 12px 18px; font-weight: 600; color: var(--rx-text-dark); text-align: center;">Applications</th>
+                        <th style="padding: 12px 18px; font-weight: 600; color: var(--rx-text-dark);">Last Login</th>
+                        <th style="padding: 12px 18px; font-weight: 600; color: var(--rx-text-dark); text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for target_user in page_obj %}
+                    <tr style="border-bottom: 1px solid var(--rx-border); transition: background 0.15s;">
+                        <td style="padding: 14px 18px; font-weight: 500; color: var(--rx-text-dark);">
+                            {{ target_user.full_name|default:"—" }}
+                        </td>
+                        <td style="padding: 14px 18px; color: var(--rx-text);">
+                            {{ target_user.email }}
+                        </td>
+                        <td style="padding: 14px 18px; text-align: center;">
+                            <span class="rw-badge rw-b-admin" style="background: #F1F5F9; color: var(--rx-text-dark);">{{ target_user.application_count }}</span>
+                        </td>
+                        <td style="padding: 14px 18px; color: var(--rx-muted);">
+                            {{ target_user.last_login|date:"d M Y, H:i"|default:"Never" }}
+                        </td>
+                        <td style="padding: 14px 18px; text-align: right;">
+                            <form method="post" action="{% url 'admin:view_as_start' target_user.id %}" style="display: inline-block; margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="rw-btn rw-btn-primary rw-btn-sm" style="padding: 6px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="bi bi-eye"></i> View as this user
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 32px 18px; text-align: center; color: var(--rx-muted);">
+                            No active borrower accounts found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid var(--rx-border); background: #F8FAFC;">
+            <div style="font-size: 0.85rem; color: var(--rx-muted);">
+                Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} total users)
+            </div>
+            <div style="display: flex; gap: 6px;">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="rw-btn rw-btn-glass rw-btn-sm">
+                        &laquo; Prev
+                    </a>
+                {% endif %}
+                <span style="display: inline-flex; align-items: center; padding: 4px 12px; background: var(--rx-teal); color: #FFFFFF; font-weight: 700; border-radius: 8px; font-size: 0.82rem;">
+                    {{ page_obj.number }}
+                </span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="rw-btn rw-btn-glass rw-btn-sm">
+                        Next &raquo;
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -88,12 +88,88 @@ class RiskWiseAdminSite(AdminSite):
     # URLs & Authentication
     # ------------------------------------------------------------------
     def get_urls(self):
+        from django.views.decorators.cache import never_cache
         custom = [
             path("analytics/", self.admin_view(self.analytics_view), name="analytics"),
             path("profile/", self.admin_view(self.profile_view), name="profile"),
             path("profile/edit/", self.admin_view(self.profile_edit_view), name="profile_edit"),
+            path("view-as/", self.admin_view(self.view_as_picker_view), name="view_as"),
+            path("view-as/<int:user_id>/start/", self.admin_view(never_cache(self.view_as_start_view)), name="view_as_start"),
         ]
         return custom + super().get_urls()
+
+    def _is_admin(self, user):
+        return (
+            user is not None
+            and user.is_authenticated
+            and user.is_active
+            and (user.is_superuser or (getattr(user, "role", "") == "ADMIN" and user.is_staff))
+        )
+
+    def view_as_picker_view(self, request):
+        if not self._is_admin(request.user):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Only administrators may access this tool.")
+
+        from django.core.paginator import Paginator
+        from .models import User
+
+        qs = (
+            User.objects.filter(
+                is_active=True,
+                role="USER",
+                is_staff=False,
+                is_superuser=False,
+            )
+            .annotate(application_count=Count("applications"))
+            .order_by("-date_joined")
+        )
+
+        q = request.GET.get("q", "").strip()
+        if q:
+            qs = qs.filter(Q(full_name__icontains=q) | Q(email__icontains=q))
+
+        paginator = Paginator(qs, 20)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            **self.each_context(request),
+            "title": "View Website as User",
+            "page_obj": page_obj,
+            "search_query": q,
+        }
+        return TemplateResponse(request, "admin/view_as.html", context)
+
+    def view_as_start_view(self, request, user_id):
+        if not self._is_admin(request.user):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Only administrators may access this tool.")
+
+        from django.contrib import messages
+        from django.core import signing
+        from django.http import HttpResponseRedirect
+        from django.shortcuts import redirect
+
+        if request.method != "POST":
+            return redirect("admin:view_as")
+
+        from .models import User
+
+        target = User.objects.filter(pk=user_id).first()
+        if (
+            not target
+            or not target.is_active
+            or getattr(target, "role", "") != "USER"
+            or target.is_staff
+            or target.is_superuser
+            or target.pk == request.user.pk
+        ):
+            messages.error(request, "Target user cannot be viewed.")
+            return redirect("admin:view_as")
+
+        token = signing.dumps({"admin": request.user.pk, "target": target.pk}, salt="rw-view-as")
+        return HttpResponseRedirect(f"/view-as/enter/?t={token}", status=303)
 
     def profile_view(self, request):
         """Administrative Profile view styled exactly like the main website profile page."""

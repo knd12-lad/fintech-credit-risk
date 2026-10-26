@@ -93,3 +93,33 @@ class SplitSessionMiddleware(SessionMiddleware):
         if need_vary_cookie:
             patch_vary_headers(response, ("Cookie",))
         return response
+
+
+class ViewAsReadOnlyMiddleware:
+    """
+    Middleware that enforces read-only mode during an active admin view-as session.
+    When 'view_as_admin_id' is present in request.session, all non-GET/HEAD/OPTIONS
+    requests except POST /view-as/exit/ are blocked and redirected back (or home)
+    with messages.error("Read-only admin view: changes are disabled.").
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        session = getattr(request, "session", None)
+        if session and session.get("view_as_admin_id"):
+            if request.method not in ("GET", "HEAD", "OPTIONS"):
+                if request.path != "/view-as/exit/":
+                    try:
+                        from django.contrib import messages
+                        messages.error(request, "Read-only admin view: changes are disabled.")
+                    except Exception:
+                        pass
+                    referer = request.META.get("HTTP_REFERER")
+                    if referer:
+                        from django.shortcuts import redirect
+                        return redirect(referer)
+                    from django.shortcuts import redirect
+                    return redirect("home")
+        return self.get_response(request)
