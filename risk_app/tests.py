@@ -596,7 +596,7 @@ class RiskWiseMasterTestSuite(TestCase):
         """
         Verify that:
         1. 404 response renders custom 404.html template.
-        2. Educational disclaimer appears in footer, risk checker, and results.
+        2. Educational disclaimer does not appear in footer, risk checker, or results.
         """
         disclaimer_text = (
             "RiskWise is an educational/demo project. Results are model estimates "
@@ -610,21 +610,21 @@ class RiskWiseMasterTestSuite(TestCase):
         self.assertContains(res_404, "Page Not Found", status_code=404)
         self.assertContains(res_404, "Back to Home", status_code=404)
 
-        # Disclaimer on homepage (footer include)
+        # Disclaimer not on homepage (footer include)
         res_home = self.client.get(reverse("home"))
         self.assertEqual(res_home.status_code, 200)
-        self.assertContains(res_home, disclaimer_text)
+        self.assertNotContains(res_home, disclaimer_text)
 
-        # Disclaimer on risk checker page
+        # Disclaimer not on risk checker page
         self.client.force_login(self.user1)
         res_checker = self.client.get(reverse("risk_checker"))
         self.assertEqual(res_checker.status_code, 200)
-        self.assertContains(res_checker, disclaimer_text)
+        self.assertNotContains(res_checker, disclaimer_text)
 
-        # Disclaimer on prediction result page
+        # Disclaimer not on prediction result page
         res_result = self.client.get(reverse("result", kwargs={"application_id": self.app1.pk}))
         self.assertEqual(res_result.status_code, 200)
-        self.assertContains(res_result, disclaimer_text)
+        self.assertNotContains(res_result, disclaimer_text)
 
     # -------------------------------------------------------------------------
     # TEST 23: Contact form sends email with graceful fallback
