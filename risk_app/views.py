@@ -8,7 +8,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import transaction
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -22,12 +22,14 @@ from ml.predict import (
 
 from .forms import EditProfileForm, RegisterForm, RiskCheckerForm
 from .models import (
+    ActivityLog,
     ContactMessage,
     LoanApplication,
     LoanType,
     ModelInfo,
     Prediction,
 )
+from .reports import generate_risk_report_pdf
 from .utils import needle_angle
 
 User = get_user_model()
@@ -493,6 +495,31 @@ def what_if_api(request, application_id):
         "delta_score": delta_score,
         "delta_probability_pct": delta_prob_pct,
     })
+
+
+@login_required
+def download_pdf_report(request, application_id):
+    """
+    Download a formatted PDF credit risk report for an application.
+    Owner-only access; records an ActivityLog entry upon download.
+    """
+    application = get_object_or_404(
+        LoanApplication.objects.select_related("loan_type", "prediction"),
+        pk=application_id,
+        user=request.user,
+    )
+
+    ActivityLog.objects.create(
+        user=request.user,
+        action="Report downloaded",
+        details=f"Application #{application.id}",
+        ip_address=request.META.get("REMOTE_ADDR"),
+    )
+
+    pdf_bytes = generate_risk_report_pdf(application)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="riskwise-report-{application.id}.pdf"'
+    return response
 
 
 class RiskWisePasswordChangeView(PasswordChangeView):

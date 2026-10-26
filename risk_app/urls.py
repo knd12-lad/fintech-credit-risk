@@ -38,6 +38,11 @@ urlpatterns = [
         views.what_if_api,
         name="what_if_api",
     ),
+    path(
+        "result/<int:application_id>/report.pdf",
+        views.download_pdf_report,
+        name="download_pdf_report",
+    ),
 
     # Authentication
     path("register/", views.register_view, name="register"),

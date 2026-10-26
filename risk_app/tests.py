@@ -1420,3 +1420,52 @@ class RiskWiseMasterTestSuite(TestCase):
         self.assertIn("error", r_61.json())
         cache.clear()
 
+    # -------------------------------------------------------------------------
+    # TEST 42: PDF Risk Report Download suite (permissions, content, ActivityLog)
+    # -------------------------------------------------------------------------
+    def test_42_pdf_risk_report_download_suite(self):
+        """
+        Phase 11 Task 3.4:
+        - Anonymous is redirected to login
+        - Another user gets 404
+        - Owner gets 200, Content-Type is application/pdf, starts with b"%PDF", > 1 KB
+        - ActivityLog entry "Report downloaded" with application id is created
+        """
+        url = reverse("download_pdf_report", kwargs={"application_id": self.app1.id})
+
+        # 1. Anonymous redirected to login
+        anon_client = Client()
+        res_anon = anon_client.get(url)
+        self.assertEqual(res_anon.status_code, 302)
+        self.assertTrue(res_anon["Location"].startswith(reverse("login")))
+
+        # 2. Another user gets 404
+        client_user2 = Client()
+        client_user2.force_login(self.user2)
+        res_other = client_user2.get(url)
+        self.assertEqual(res_other.status_code, 404)
+
+        # 3. Owner gets 200, PDF content, and ActivityLog is created
+        self.client.force_login(self.user1)
+        log_count_before = ActivityLog.objects.filter(
+            action="Report downloaded", user=self.user1
+        ).count()
+
+        res_owner = self.client.get(url)
+        self.assertEqual(res_owner.status_code, 200)
+        self.assertEqual(res_owner["Content-Type"], "application/pdf")
+        self.assertIn("attachment;", res_owner["Content-Disposition"])
+        self.assertIn(f"riskwise-report-{self.app1.id}.pdf", res_owner["Content-Disposition"])
+        self.assertTrue(res_owner.content.startswith(b"%PDF"))
+        self.assertGreater(len(res_owner.content), 1024)  # larger than 1 KB
+
+        # 4. ActivityLog entry created with application id
+        log_count_after = ActivityLog.objects.filter(
+            action="Report downloaded", user=self.user1
+        ).count()
+        self.assertEqual(log_count_after, log_count_before + 1)
+        latest_log = ActivityLog.objects.filter(
+            action="Report downloaded", user=self.user1
+        ).first()
+        self.assertIn(str(self.app1.id), latest_log.details)
+

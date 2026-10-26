@@ -370,18 +370,27 @@
 
         <!-- Page Heading -->
         <div class="mb-4">
-            <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="result-icon probability-icon">
-                    <i class="bi bi-clipboard2-check"></i>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="result-icon probability-icon">
+                        <i class="bi bi-clipboard2-check"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="result-heading mb-1">
+                            Credit Risk Prediction Result
+                        </h2>
+                        <p class="result-subtitle mb-0">
+                            Your loan application has been analyzed by RiskWise.
+                        </p>
+                    </div>
                 </div>
 
                 <div>
-                    <h2 class="result-heading mb-1">
-                        Credit Risk Prediction Result
-                    </h2>
-                    <p class="result-subtitle mb-0">
-                        Your loan application has been analyzed by RiskWise.
-                    </p>
+                    <a href="{% url 'download_pdf_report' application.id %}" class="btn btn-outline-dark d-inline-flex align-items-center gap-2" id="header-download-pdf-btn">
+                        <i class="bi bi-file-earmark-pdf text-danger fs-5"></i>
+                        <span>Download PDF report</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -775,6 +784,11 @@
 
                 <!-- Action Buttons -->
                 <div class="result-actions">
+                    <a href="{% url 'download_pdf_report' application.id %}" class="btn btn-outline-dark" id="btn-download-pdf">
+                        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>
+                        Download PDF report
+                    </a>
+
                     <a href="{% url 'history' %}" class="btn btn-riskwise-dark">
                         <i class="bi bi-clock-history me-2"></i>
                         View History

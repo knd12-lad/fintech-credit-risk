@@ -11,3 +11,4 @@ gunicorn==26.2.0
 asgiref==3.12.1
 sqlparse==0.6.0
 tzdata==2026.5
+reportlab==5.1.0
