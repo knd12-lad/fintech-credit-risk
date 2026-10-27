@@ -152,6 +152,153 @@ section[id] {
     color: #FFFFFF;
 }
 
+/* ---------- 3b. Bootstrap Brand Overrides (Public Website) ---------- */
+:root {
+    --bs-primary: var(--rx-teal-dark);
+    --bs-primary-rgb: 15, 118, 110;
+}
+
+.btn-primary {
+    --bs-btn-color: #FFFFFF;
+    --bs-btn-bg: var(--rx-teal-dark);
+    --bs-btn-border-color: var(--rx-teal-dark);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: #0D655E;
+    --bs-btn-hover-border-color: #0B5650;
+    --bs-btn-focus-shadow-rgb: 15, 118, 110;
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: #0B5650;
+    --bs-btn-active-border-color: #094742;
+    --bs-btn-disabled-color: #FFFFFF;
+    --bs-btn-disabled-bg: var(--rx-teal-dark);
+    --bs-btn-disabled-border-color: var(--rx-teal-dark);
+    background-color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background-color: #0D655E;
+    border-color: #0B5650;
+    color: #FFFFFF;
+}
+
+.btn-primary:focus,
+.btn-primary.focus,
+.btn-primary:focus-visible {
+    background-color: #0D655E;
+    border-color: #0B5650;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 0.25rem rgba(15, 118, 110, 0.25);
+}
+
+.btn-primary:active,
+.btn-primary.active,
+.show > .btn-primary.dropdown-toggle {
+    background-color: #0B5650;
+    border-color: #094742;
+    color: #FFFFFF;
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+    background-color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    color: #FFFFFF;
+    opacity: 0.65;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--rx-teal-dark);
+    --bs-btn-border-color: var(--rx-teal-dark);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--rx-teal-dark);
+    --bs-btn-hover-border-color: var(--rx-teal-dark);
+    --bs-btn-focus-shadow-rgb: 15, 118, 110;
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--rx-teal-dark);
+    --bs-btn-active-border-color: var(--rx-teal-dark);
+    --bs-btn-disabled-color: var(--rx-teal-dark);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--rx-teal-dark);
+    color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    color: #FFFFFF;
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary.focus,
+.btn-outline-primary:focus-visible {
+    color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    box-shadow: 0 0 0 0.25rem rgba(15, 118, 110, 0.25);
+}
+
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.show > .btn-outline-primary.dropdown-toggle {
+    background-color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    color: #FFFFFF;
+}
+
+.btn-outline-primary:disabled,
+.btn-outline-primary.disabled {
+    color: var(--rx-teal-dark);
+    border-color: var(--rx-teal-dark);
+    background-color: transparent;
+    opacity: 0.65;
+}
+
+/* Range input accent-color */
+.form-range,
+input[type="range"] {
+    accent-color: var(--rx-teal-dark);
+}
+
+.form-range::-webkit-slider-thumb {
+    background-color: var(--rx-teal-dark);
+}
+
+.form-range:active::-webkit-slider-thumb {
+    background-color: var(--rx-teal);
+}
+
+.form-range::-moz-range-thumb {
+    background-color: var(--rx-teal-dark);
+}
+
+.form-range:active::-moz-range-thumb {
+    background-color: var(--rx-teal);
+}
+
+.form-range:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 1px #FFFFFF, 0 0 0 0.25rem rgba(15, 118, 110, 0.25);
+}
+
+.form-range:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 1px #FFFFFF, 0 0 0 0.25rem rgba(15, 118, 110, 0.25);
+}
+
+/* Form input focus states */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--rx-teal);
+    box-shadow: 0 0 0 0.25rem rgba(20, 184, 166, 0.25);
+}
+
+/* Primary Badges */
+.badge.bg-primary {
+    background-color: var(--rx-teal-dark) !important;
+    color: #FFFFFF !important;
+}
+
 /* ---------- 4. Navbar ---------- */
 .rx-header {
     background: var(--rx-navy);
