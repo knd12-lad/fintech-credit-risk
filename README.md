@@ -334,6 +334,7 @@ SECRET_KEY=your-generated-random-secret-key-at-least-50-characters
 DEBUG=False
 ALLOWED_HOSTS=yourusername.pythonanywhere.com
 CSRF_TRUSTED_ORIGINS=https://yourusername.pythonanywhere.com
+SITE_URL=https://yourusername.pythonanywhere.com
 
 DB_NAME=yourusername$fintech_credit_risk
 DB_USER=yourusername
@@ -346,6 +347,9 @@ EMAIL_PORT=587
 EMAIL_HOST_USER=your-email@example.com
 EMAIL_HOST_PASSWORD=your-app-password
 EMAIL_USE_TLS=True
+
+# Optional Plausible Analytics (privacy-friendly, no cookies)
+PLAUSIBLE_DOMAIN=yourusername.pythonanywhere.com
 ```
 
 ### Step 6: Run Migrations and Seed Data
@@ -353,6 +357,7 @@ In the Bash console (with virtual environment active):
 ```bash
 python manage.py migrate
 python manage.py seed_initial_data
+python manage.py seed_demo_visitor
 python manage.py createsuperuser
 ```
 
@@ -391,6 +396,20 @@ application = get_wsgi_application()
 
 ### Step 10: Reload Web App
 Click the green **Reload <yourusername>.pythonanywhere.com** button at the top of the Web tab. Your application is now live!
+
+### Step 11: Health Check & Uptime Monitoring
+Set up an external uptime monitor (e.g. UptimeRobot, BetterStack) pointing to:
+```
+https://yourusername.pythonanywhere.com/healthz/
+```
+The `/healthz/` endpoint verifies both live database connectivity (`SELECT 1`) and ML model loading, returning `200 OK` with JSON `{"status": "ok", "database": "ok", "model": "ok"}`. Configure the monitor to alert if status is not 200.
+
+### Step 12: Submit Sitemap to Google Search Console
+Submit the sitemap URL to Google Search Console:
+```
+https://yourusername.pythonanywhere.com/sitemap.xml
+```
+This enables search engines to discover public trust and informational pages (`/`, `/about/`, `/how-it-works/`, `/contact/`, `/privacy/`, `/terms/`) while internal applicant tools and administrative paths remain blocked via `/robots.txt`.
 
 ---
 

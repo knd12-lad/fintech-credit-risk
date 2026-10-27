@@ -1585,4 +1585,58 @@ class RiskWiseMasterTestSuite(TestCase):
         self.assertEqual(res_page.status_code, 200)
         self.assertIn('<meta name="robots" content="noindex">', res_page.content.decode())
 
+    # -------------------------------------------------------------------------
+    # TEST 45: Operations health check and optional analytics
+    # -------------------------------------------------------------------------
+    def test_45_operations_healthz_and_analytics(self):
+        """
+        Phase 12 Task 4.4:
+        - /healthz/ returns 200 JSON ok
+        - simulate a model-load failure (mock) and expect 503
+        - analytics script appears only when PLAUSIBLE_DOMAIN is set on public pages
+        """
+        anon_client = Client()
+
+        # 1. Health check returns 200 OK with expected JSON
+        health_res = anon_client.get("/healthz/")
+        self.assertEqual(health_res.status_code, 200)
+        self.assertEqual(
+            health_res.json(),
+            {"status": "ok", "database": "ok", "model": "ok"},
+        )
+        self.assertIn("no-cache", health_res["Cache-Control"])
+
+        # 2. Simulate model load failure -> returns 503
+        with patch("ml.predict._load", side_effect=RuntimeError("Simulated Model Failure")):
+            fail_res = anon_client.get("/healthz/")
+            self.assertEqual(fail_res.status_code, 503)
+            data = fail_res.json()
+            self.assertEqual(data.get("status"), "error")
+            self.assertEqual(data.get("model"), "error")
+
+        # 3. Analytics appears only when PLAUSIBLE_DOMAIN is set on public pages
+        with self.settings(PLAUSIBLE_DOMAIN="riskwise.test"):
+            # Public page (home)
+            pub_res = anon_client.get(reverse("home"))
+            self.assertEqual(pub_res.status_code, 200)
+            self.assertIn('data-domain="riskwise.test"', pub_res.content.decode())
+            self.assertIn("https://plausible.io/js/script.js", pub_res.content.decode())
+
+            # Private page (result) - should NOT contain analytics script
+            self.client.force_login(self.user1)
+            priv_res = self.client.get(
+                reverse("result", kwargs={"application_id": self.app1.id})
+            )
+            self.assertEqual(priv_res.status_code, 200)
+            self.assertNotIn('data-domain="riskwise.test"', priv_res.content.decode())
+            self.assertNotIn("https://plausible.io/js/script.js", priv_res.content.decode())
+
+        # 4. Analytics does NOT appear when PLAUSIBLE_DOMAIN is unset / empty
+        with self.settings(PLAUSIBLE_DOMAIN=""):
+            pub_res_empty = anon_client.get(reverse("home"))
+            self.assertEqual(pub_res_empty.status_code, 200)
+            self.assertNotIn("https://plausible.io/js/script.js", pub_res_empty.content.decode())
+            self.assertNotIn("data-domain=", pub_res_empty.content.decode())
+
+
 

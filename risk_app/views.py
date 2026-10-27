@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
 from django.core.cache import cache
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import connection, transaction
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -571,3 +571,55 @@ def robots_txt(request):
         f"Sitemap: {site_url}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain; charset=utf-8")
+
+
+def healthz_view(request):
+    """
+    Public operations health check returning JSON status.
+    Performs real DB probe and ML model load check.
+    Returns 200 {"status": "ok", "database": "ok", "model": "ok"} on success.
+    Returns 503 with status "error" when any dependency check fails.
+    No authentication, no secrets, no caching.
+    """
+    db_ok = False
+    model_ok = False
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        db_ok = True
+    except Exception as exc:
+        logger.exception("Health check database probe failed: %s", exc)
+        db_ok = False
+
+    try:
+        import ml.predict
+        ml.predict._load()
+        model_ok = True
+    except Exception as exc:
+        logger.exception("Health check model probe failed: %s", exc)
+        model_ok = False
+
+    if db_ok and model_ok:
+        response = JsonResponse(
+            {
+                "status": "ok",
+                "database": "ok",
+                "model": "ok",
+            },
+            status=200,
+        )
+    else:
+        response = JsonResponse(
+            {
+                "status": "error",
+                "database": "ok" if db_ok else "error",
+                "model": "ok" if model_ok else "error",
+            },
+            status=503,
+        )
+
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+

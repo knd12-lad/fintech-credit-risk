@@ -11,6 +11,8 @@ sitemaps = {
 }
 
 urlpatterns = [
+    # Health Check & Operations
+    path("healthz/", views.healthz_view, name="healthz"),
     # SEO & Crawlers
     path("robots.txt", views.robots_txt, name="robots_txt"),
     path(

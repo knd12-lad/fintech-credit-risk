@@ -39,7 +39,7 @@
     {# style.css = old styles (kept for now). riskwise.css = new theme, must come last #}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/riskwise.css' %}">
-    {% block analytics %}{% if PLAUSIBLE_DOMAIN %}<script defer data-domain="{{ PLAUSIBLE_DOMAIN }}" src="https://plausible.io/js/script.js"></script>{% endif %}{% endblock %}
+    {% block analytics %}{% if PLAUSIBLE_DOMAIN and request.resolver_match.url_name in 'home,about,how_it_works,contact,privacy,terms' %}<script defer data-domain="{{ PLAUSIBLE_DOMAIN }}" src="https://plausible.io/js/script.js"></script>{% endif %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100 {% if view_as_admin and view_as_target %}has-view-as-banner{% endif %}" {% if view_as_admin and view_as_target %}style="padding-top: 48px;"{% endif %}>
