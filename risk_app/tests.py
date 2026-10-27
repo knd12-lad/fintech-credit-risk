@@ -1577,7 +1577,16 @@ class RiskWiseMasterTestSuite(TestCase):
 
         # Verify Model Limitations section exists on how-it-works
         how_res = anon_client.get(reverse("how_it_works"))
-        self.assertIn("Model Limitations", how_res.content.decode())
+        self.assertEqual(how_res.status_code, 200)
+        how_content = how_res.content.decode()
+        self.assertIn("Model Limitations", how_content)
+
+        # Phase 13 Task 2: table header does not contain "Field" and "person_age" is not shown in that table
+        table_start = how_content.find("Input Features (10 Fields)")
+        self.assertNotEqual(table_start, -1)
+        table_html = how_content[table_start:how_content.find("</table>", table_start)]
+        self.assertNotIn("<th>Field</th>", table_html)
+        self.assertNotIn("person_age", table_html)
 
     # -------------------------------------------------------------------------
     # TEST 44: SEO and sharing suite (robots, sitemap, meta, OG, noindex)
