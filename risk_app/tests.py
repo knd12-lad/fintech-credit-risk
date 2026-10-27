@@ -23,6 +23,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 from risk_app.models import LoanType, LoanApplication, Prediction, ContactMessage, ActivityLog
+from risk_app.forms import RiskCheckerForm
 from risk_app.utils import needle_angle
 from ml.predict import predict_credit_risk
 from ml.explain import explain_prediction
@@ -1315,15 +1316,21 @@ class RiskWiseMasterTestSuite(TestCase):
     # -------------------------------------------------------------------------
     def test_41_what_if_simulator_suite(self):
         """
-        Phase 11 Task 2.3:
+        Phase 11 & Phase 13 Task 1.5:
         - Owner gets 200 and numbers equal predict_credit_risk on modified data
+        - Accepts all 10 parameters and numbers equal predict_credit_risk
+        - Invalid grade or age returns 400 with the field name
+        - Missing parameters fall back to saved values
         - Another user gets 404
         - Anonymous is redirected to login
-        - Invalid values give 400 with {"error": "..."}
-        - Missing parameters fall back to saved values
         - No LoanApplication or Prediction row is created
-        - 61st request in a minute gets 429
+        - 121st request in a minute gets 429 (clear the cache in the test)
+        - For an application with income 700000 the rendered income slider has min < 700000 < max OR max equals form maximum
+        - The card contains inputs for all 10 fields
         """
+        from decimal import Decimal
+        import re
+
         url = reverse("what_if_api", kwargs={"application_id": self.app1.id})
 
         # 1. Anonymous is redirected to login
@@ -1338,44 +1345,50 @@ class RiskWiseMasterTestSuite(TestCase):
         res_other = client_user2.get(url)
         self.assertEqual(res_other.status_code, 404)
 
-        # 3. Owner gets 200 and numbers equal predict_credit_risk on modified data
+        # 3. Owner gets 200 and numbers equal predict_credit_risk on modified data (all 10 parameters)
         self.client.force_login(self.user1)
         app_count_before = LoanApplication.objects.count()
         pred_count_before = Prediction.objects.count()
 
-        params = {
-            "person_income": "90000",
-            "loan_amnt": "12000",
-            "loan_int_rate": "9.5",
-            "person_emp_length": "6",
+        params_all = {
+            "person_age": "32",
+            "person_income": "95000",
+            "person_emp_length": "8",
+            "person_home_ownership": "OWN",
+            "loan_intent": "EDUCATION",
+            "loan_grade": "B",
+            "loan_amnt": "15000",
+            "loan_int_rate": "8.5",
+            "cb_person_default_on_file": "N",
+            "cb_person_cred_hist_length": "7",
         }
-        res_mod = self.client.get(url, params)
-        self.assertEqual(res_mod.status_code, 200)
-        data = res_mod.json()
+        res_all = self.client.get(url, params_all)
+        self.assertEqual(res_all.status_code, 200)
+        data_all = res_all.json()
 
-        expected_input = {
-            "person_age": int(self.app1.age),
-            "person_income": 90000.0,
-            "person_emp_length": 6.0,
-            "person_home_ownership": self.app1.home_ownership,
-            "loan_intent": self.app1.loan_type.code,
-            "loan_grade": self.app1.loan_grade,
-            "loan_amnt": 12000.0,
-            "loan_int_rate": 9.5,
-            "cb_person_default_on_file": self.app1.previous_default,
-            "cb_person_cred_hist_length": int(self.app1.credit_history_length),
+        expected_all_input = {
+            "person_age": 32,
+            "person_income": 95000.0,
+            "person_emp_length": 8.0,
+            "person_home_ownership": "OWN",
+            "loan_intent": "EDUCATION",
+            "loan_grade": "B",
+            "loan_amnt": 15000.0,
+            "loan_int_rate": 8.5,
+            "cb_person_default_on_file": "N",
+            "cb_person_cred_hist_length": 7,
         }
-        expected_pred = predict_credit_risk(expected_input)
+        expected_all_pred = predict_credit_risk(expected_all_input)
 
-        self.assertEqual(data["score"], expected_pred["credit_score"])
-        self.assertEqual(data["probability_pct"], round(expected_pred["default_probability"] * 100, 1))
-        self.assertEqual(data["risk_level"], expected_pred["risk_level"])
-        self.assertEqual(data["risk_label"], f"{expected_pred['risk_level']} Risk")
-        self.assertEqual(data["needle_angle"], needle_angle(expected_pred["credit_score"]))
-        self.assertEqual(data["delta_score"], expected_pred["credit_score"] - self.pred1.credit_score)
+        self.assertEqual(data_all["score"], expected_all_pred["credit_score"])
+        self.assertEqual(data_all["probability_pct"], round(expected_all_pred["default_probability"] * 100, 1))
+        self.assertEqual(data_all["risk_level"], expected_all_pred["risk_level"])
+        self.assertEqual(data_all["risk_label"], f"{expected_all_pred['risk_level']} Risk")
+        self.assertEqual(data_all["needle_angle"], needle_angle(expected_all_pred["credit_score"]))
+        self.assertEqual(data_all["delta_score"], expected_all_pred["credit_score"] - self.pred1.credit_score)
         self.assertEqual(
-            data["delta_probability_pct"],
-            round(round(expected_pred["default_probability"] * 100, 1) - round(self.pred1.default_probability * 100, 1), 1),
+            data_all["delta_probability_pct"],
+            round(round(expected_all_pred["default_probability"] * 100, 1) - round(self.pred1.default_probability * 100, 1), 1),
         )
 
         # 4. Missing parameters fall back to saved values
@@ -1401,24 +1414,81 @@ class RiskWiseMasterTestSuite(TestCase):
         self.assertEqual(LoanApplication.objects.count(), app_count_before)
         self.assertEqual(Prediction.objects.count(), pred_count_before)
 
-        # 6. Invalid values return 400 JSON {"error": "..."}
+        # 6. Invalid values return 400 with field name
+        res_inv_grade = self.client.get(url, {"loan_grade": "Z"})
+        self.assertEqual(res_inv_grade.status_code, 400)
+        self.assertEqual(res_inv_grade.json().get("field"), "loan_grade")
+        self.assertIn("error", res_inv_grade.json())
+
+        res_inv_age = self.client.get(url, {"person_age": "15"})
+        self.assertEqual(res_inv_age.status_code, 400)
+        self.assertEqual(res_inv_age.json().get("field"), "person_age")
+        self.assertIn("error", res_inv_age.json())
+
         res_inv_income = self.client.get(url, {"person_income": "-100"})
         self.assertEqual(res_inv_income.status_code, 400)
-        self.assertIn("error", res_inv_income.json())
+        self.assertEqual(res_inv_income.json().get("field"), "person_income")
 
-        res_inv_rate = self.client.get(url, {"loan_int_rate": "85.0"})
-        self.assertEqual(res_inv_rate.status_code, 400)
-        self.assertIn("error", res_inv_rate.json())
-
-        # 7. Rate limit: 61st request in a minute gets 429
+        # 7. Rate limit: 121st request in a minute gets 429
         cache.clear()
-        for i in range(60):
+        for i in range(120):
             r = self.client.get(url)
             self.assertEqual(r.status_code, 200, f"Request {i+1} should be 200")
-        r_61 = self.client.get(url)
-        self.assertEqual(r_61.status_code, 429)
-        self.assertIn("error", r_61.json())
+        r_121 = self.client.get(url)
+        self.assertEqual(r_121.status_code, 429)
+        self.assertIn("error", r_121.json())
         cache.clear()
+
+        # 8. For an application with income 700000: min < 700000 < max OR max equals form maximum
+        app_700k = LoanApplication.objects.create(
+            user=self.user1,
+            loan_type=self.loan_types["PERSONAL"],
+            full_name="High Earner",
+            age=40,
+            annual_income=Decimal("700000"),
+            employment_length=10,
+            home_ownership="MORTGAGE",
+            loan_grade="A",
+            loan_amount=Decimal("25000"),
+            interest_rate=6.5,
+            previous_default="N",
+            credit_history_length=12,
+        )
+        Prediction.objects.create(
+            application=app_700k,
+            default_probability=0.05,
+            credit_score=820,
+            risk_level="Low",
+            predicted_status=0,
+        )
+        res_page = self.client.get(reverse("result", kwargs={"application_id": app_700k.id}))
+        self.assertEqual(res_page.status_code, 200)
+        page_html = res_page.content.decode("utf-8")
+
+        match = re.search(r'id="whatif-income"[^>]*min="([^"]+)"[^>]*max="([^"]+)"', page_html)
+        if not match:
+            match = re.search(r'data-field="person_income"[^>]*min="([^"]+)"[^>]*max="([^"]+)"', page_html)
+        self.assertIsNotNone(match, "Income slider must have min and max attributes")
+        slider_min = float(match.group(1))
+        slider_max = float(match.group(2))
+        form_max = float(RiskCheckerForm.base_fields["person_income"].max_value)
+        self.assertTrue(
+            (slider_min < 700000 < slider_max) or (slider_max == form_max),
+            f"Income slider range [{slider_min}, {slider_max}] must satisfy min < 700000 < max or max == form_max ({form_max})",
+        )
+
+        # 9. What-if card contains inputs for all 10 fields
+        ten_fields = [
+            "person_age", "person_income", "person_emp_length", "person_home_ownership",
+            "loan_intent", "loan_grade", "loan_amnt", "loan_int_rate",
+            "cb_person_default_on_file", "cb_person_cred_hist_length"
+        ]
+        for fld in ten_fields:
+            self.assertTrue(
+                f'name="{fld}"' in page_html or f'data-field="{fld}"' in page_html,
+                f"What-if card should contain input for {fld}",
+            )
+
 
     # -------------------------------------------------------------------------
     # TEST 42: PDF Risk Report Download suite (permissions, content, ActivityLog)

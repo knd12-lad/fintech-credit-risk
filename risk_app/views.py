@@ -1,4 +1,5 @@
 import logging
+import math
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -393,6 +394,9 @@ def result_view(request, application_id):
     except Exception as e:
         logger.exception("Failed to generate prediction explanation: %s", e)
 
+    whatif_limits = get_whatif_limits()
+    whatif_config = get_whatif_config(application, whatif_limits)
+
     return render(
         request,
         "result.html",
@@ -400,15 +404,105 @@ def result_view(request, application_id):
             "application": application,
             "score_percentage": score_percentage,
             "explanation": explanation,
+            "whatif_limits": whatif_limits,
+            "whatif_config": whatif_config,
         },
     )
+
+
+def calculate_nice_step(min_val, max_val, default_step=1):
+    diff = max_val - min_val
+    if diff <= 0:
+        return default_step
+    target = diff / 100.0
+    nice_steps = [1, 5, 10, 50, 100, 250, 500, 1000]
+    return min(nice_steps, key=lambda s: abs(s - target))
+
+
+def get_whatif_limits():
+    """Read limits directly from RiskCheckerForm fields."""
+    limits = {}
+    form = RiskCheckerForm()
+    for name, field in form.fields.items():
+        limit_data = {}
+        if hasattr(field, "min_value") and field.min_value is not None:
+            limit_data["min"] = float(field.min_value)
+        if hasattr(field, "max_value") and field.max_value is not None:
+            limit_data["max"] = float(field.max_value)
+        if hasattr(field, "choices") and field.choices:
+            limit_data["choices"] = list(field.choices)
+        limits[name] = limit_data
+    return limits
+
+
+def get_whatif_config(application, limits):
+    """Compute initial slider ranges and nice steps for the application."""
+    config = {}
+
+    inc_val = float(application.annual_income)
+    inc_min = int(max(limits["person_income"]["min"], math.floor(inc_val * 0.25)))
+    inc_max = int(min(limits["person_income"]["max"], math.ceil(inc_val * 3)))
+    config["person_income"] = {
+        "val": inc_val,
+        "slider_min": inc_min,
+        "slider_max": inc_max,
+        "step": calculate_nice_step(inc_min, inc_max),
+    }
+
+    loan_val = float(application.loan_amount)
+    loan_min = int(max(limits["loan_amnt"]["min"], math.floor(loan_val * 0.25)))
+    loan_max = int(min(limits["loan_amnt"]["max"], math.ceil(loan_val * 3)))
+    config["loan_amnt"] = {
+        "val": loan_val,
+        "slider_min": loan_min,
+        "slider_max": loan_max,
+        "step": calculate_nice_step(loan_min, loan_max),
+    }
+
+    age_min = int(limits["person_age"]["min"])
+    age_max = int(limits["person_age"]["max"])
+    config["person_age"] = {
+        "val": int(application.age),
+        "slider_min": age_min,
+        "slider_max": age_max,
+        "step": 1,
+    }
+
+    emp_min = int(limits["person_emp_length"]["min"])
+    emp_max = int(limits["person_emp_length"]["max"])
+    config["person_emp_length"] = {
+        "val": float(application.employment_length),
+        "slider_min": emp_min,
+        "slider_max": emp_max,
+        "step": 1,
+    }
+
+    rate_min = float(limits["loan_int_rate"]["min"])
+    rate_max = float(limits["loan_int_rate"]["max"])
+    config["loan_int_rate"] = {
+        "val": float(application.interest_rate),
+        "slider_min": rate_min,
+        "slider_max": rate_max,
+        "step": 0.1,
+    }
+
+    cred_min = int(limits["cb_person_cred_hist_length"]["min"])
+    cred_max = int(limits["cb_person_cred_hist_length"]["max"])
+    config["cb_person_cred_hist_length"] = {
+        "val": int(application.credit_history_length),
+        "slider_min": cred_min,
+        "slider_max": cred_max,
+        "step": 1,
+    }
+
+    return config
 
 
 @login_required
 def what_if_api(request, application_id):
     """
     Simulation endpoint: evaluates modified loan parameters without database writes.
-    Login required, owner only (404 otherwise). Rate-limited to 60 requests/minute.
+    Login required, owner only (404 otherwise). Rate-limited to 120 requests/minute.
     """
     application = get_object_or_404(
         LoanApplication.objects.select_related("loan_type", "prediction"),
@@ -416,12 +510,12 @@ def what_if_api(request, application_id):
         user=request.user,
     )
 
-    # Per-user rate limit (60 requests per minute)
+    # Per-user rate limit (120 requests per minute)
     cache_key = f"what_if_rl_{request.user.pk}"
     req_count = cache.get(cache_key, 0)
-    if req_count >= 60:
+    if req_count >= 120:
         return JsonResponse(
-            {"error": "Rate limit exceeded (60 requests per minute). Please wait."},
+            {"error": "Rate limit exceeded (120 requests per minute). Please wait."},
             status=429,
         )
     cache.set(cache_key, req_count + 1, timeout=60)
@@ -440,32 +534,40 @@ def what_if_api(request, application_id):
         "cb_person_cred_hist_length": int(application.credit_history_length),
     }
 
-    allowed_params = [
+    all_params = [
+        "person_age",
         "person_income",
+        "person_emp_length",
+        "person_home_ownership",
+        "loan_intent",
+        "loan_grade",
         "loan_amnt",
         "loan_int_rate",
-        "person_emp_length",
+        "cb_person_default_on_file",
         "cb_person_cred_hist_length",
     ]
 
-    for param in allowed_params:
+    form = RiskCheckerForm()
+    for param in all_params:
         if param in request.GET:
             raw_val = request.GET.get(param)
             if raw_val is not None and str(raw_val).strip() != "":
-                field = RiskCheckerForm.base_fields.get(param)
+                field = form.fields.get(param)
                 if field is not None:
                     try:
                         cleaned = field.clean(raw_val)
                     except forms.ValidationError as e:
                         msg = e.messages[0] if hasattr(e, "messages") and e.messages else str(e)
-                        return JsonResponse({"error": f"{param}: {msg}"}, status=400)
+                        return JsonResponse({"error": f"{param}: {msg}", "field": param}, status=400)
                     except Exception as e:
-                        return JsonResponse({"error": f"{param}: {str(e)}"}, status=400)
+                        return JsonResponse({"error": f"{param}: {str(e)}", "field": param}, status=400)
 
                     if param in ("person_income", "loan_amnt", "loan_int_rate", "person_emp_length"):
                         data[param] = float(cleaned)
-                    elif param == "cb_person_cred_hist_length":
+                    elif param in ("person_age", "cb_person_cred_hist_length"):
                         data[param] = int(cleaned)
+                    else:
+                        data[param] = str(cleaned)
 
     try:
         pred_res = predict_credit_risk(data)

@@ -83,6 +83,7 @@ class RiskCheckerForm(BootstrapFormMixin, forms.Form):
     person_income = forms.DecimalField(
         label=f"Annual Income ({CURRENCY_SYMBOL})",
         min_value=1,
+        max_value=10000000,
         max_digits=12,
         decimal_places=2,
         widget=forms.NumberInput(attrs={"placeholder": "e.g. 60000"})
@@ -113,6 +114,7 @@ class RiskCheckerForm(BootstrapFormMixin, forms.Form):
     loan_amnt = forms.DecimalField(
         label=f"Loan Amount ({CURRENCY_SYMBOL})",
         min_value=1,
+        max_value=1000000,
         max_digits=12,
         decimal_places=2,
         widget=forms.NumberInput(attrs={"placeholder": "e.g. 20000"})
@@ -151,6 +153,17 @@ class RiskCheckerForm(BootstrapFormMixin, forms.Form):
             ("VENTURE", "Venture"),
         ]
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            from .models import LoanType
+            active_types = list(LoanType.objects.filter(is_active=True).values_list("code", "name"))
+            if active_types:
+                self.fields["loan_intent"].choices = active_types
+        except Exception:
+            pass
+
 
 
 

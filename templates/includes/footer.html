@@ -24,7 +24,9 @@
                 <ul>
                     <li><a href="{% url 'home' %}">Home</a></li>
                     <li><a href="{% url 'how_it_works' %}">How it works</a></li>
-                    <li><a href="{% if about_url %}{{ about_url }}{% else %}{% url 'home' %}#how-it-works{% endif %}">About</a></li>
+                    <li><a
+                            href="{% if about_url %}{{ about_url }}{% else %}{% url 'home' %}#how-it-works{% endif %}">About</a>
+                    </li>
                     {% if risk_url %}<li><a href="{{ risk_url }}">Risk Checker</a></li>{% endif %}
                     {% if history_url and user.is_authenticated %}<li><a href="{{ history_url }}">History</a></li>{% endif %}
                     <li><a href="{% url 'privacy' %}">Privacy</a></li>
@@ -48,7 +50,6 @@
                 </div>
             </div>
         </div>
-
         <div class="rx-footer-bottom d-flex flex-wrap justify-content-between gap-2">
             <span>&copy; {% now "Y" %} RiskWise. FinTech Credit Risk Scoring &amp; Loan Default Predictor.</span>
             <span>

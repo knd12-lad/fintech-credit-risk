@@ -305,6 +305,15 @@
         margin-top: 3px;
     }
 
+    .whatif-field-changed {
+        border-color: #0F766E !important;
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25) !important;
+    }
+
+    .whatif-range {
+        accent-color: #0F766E !important;
+    }
+
     @media (max-width: 991px) {
         .detail-column + .detail-column {
             border-left: none;
@@ -565,6 +574,7 @@
         {% endif %}
 
         <!-- What if...? (Scenario Simulator Card) -->
+        {{ whatif_limits|json_script:"whatif-limits-data" }}
         <div class="card result-card mb-4" id="what-if-card" data-api-url="{% url 'what_if_api' application.id %}">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
@@ -574,67 +584,296 @@
                         </div>
                         <div>
                             <h4 class="mb-0 fw-bold" style="color: #0B132B;">What if...?</h4>
-                            <p class="text-muted small mb-0">Simulate how changing loan terms or income parameters would impact your score in real-time.</p>
+                            <p class="text-muted small mb-0">Simulate how changing loan terms or profile parameters would impact your score in real-time.</p>
                         </div>
                     </div>
-                    <button type="button" id="whatif-reset-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="whatif-changes-badge" class="badge rounded-pill fw-semibold px-3 py-2" style="background: rgba(15, 118, 110, 0.1); color: #0F766E; border: 1px solid rgba(15, 118, 110, 0.2);">
+                            0 changes vs saved result
+                        </span>
+                        <button type="button" id="whatif-reset-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
                 </div>
 
-                <div class="row g-4 align-items-center">
-                    <!-- Left Column: 4 Sliders -->
+                <div class="row g-4 align-items-start">
+                    <!-- Left Column: All 10 Inputs -->
                     <div class="col-12 col-lg-7">
                         <div class="d-flex flex-column gap-3">
-                            <!-- Income Slider -->
-                            <div>
+                            <div class="fw-bold small text-uppercase tracking-wider text-muted pb-1 border-bottom">Loan Parameters</div>
+
+                            <!-- Loan Amount -->
+                            <div class="whatif-field-group" data-field="loan_amnt">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label for="whatif-income" class="form-label mb-0 small fw-semibold text-secondary">Annual Income</label>
-                                    <span id="whatif-income-val" class="badge bg-light text-dark border fw-bold">${{ application.annual_income|floatformat:0|intcomma }}</span>
+                                    <label for="whatif-input-loan_amnt" class="form-label mb-0 small fw-semibold text-secondary">Loan Amount</label>
+                                    <div class="input-group input-group-sm" style="max-width: 150px;">
+                                        <span class="input-group-text bg-light text-secondary">$</span>
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-loan_amnt"
+                                               name="loan_amnt"
+                                               data-field="loan_amnt"
+                                               value="{{ application.loan_amount|floatformat:0 }}"
+                                               data-initial="{{ application.loan_amount|floatformat:0 }}"
+                                               min="{{ whatif_limits.loan_amnt.min|floatformat:0 }}"
+                                               max="{{ whatif_limits.loan_amnt.max|floatformat:0 }}"
+                                               step="{{ whatif_config.loan_amnt.step }}">
+                                    </div>
                                 </div>
-                                <input type="range" class="form-range" id="whatif-income" min="1000" max="{% if application.annual_income > 200000 %}{{ application.annual_income|floatformat:0 }}{% else %}200000{% endif %}" step="1000" value="{{ application.annual_income|floatformat:0 }}" data-initial="{{ application.annual_income|floatformat:0 }}">
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-loan"
+                                       data-field="loan_amnt"
+                                       min="{{ whatif_config.loan_amnt.slider_min }}"
+                                       max="{{ whatif_config.loan_amnt.slider_max }}"
+                                       step="{{ whatif_config.loan_amnt.step }}"
+                                       value="{{ application.loan_amount|floatformat:0 }}"
+                                       data-initial="{{ application.loan_amount|floatformat:0 }}"
+                                       data-initial-min="{{ whatif_config.loan_amnt.slider_min }}"
+                                       data-initial-max="{{ whatif_config.loan_amnt.slider_max }}"
+                                       data-initial-step="{{ whatif_config.loan_amnt.step }}">
                                 <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-                                    <span>$1k</span>
-                                    <span>${% if application.annual_income > 200000 %}{{ application.annual_income|floatformat:0 }}{% else %}200k{% endif %}</span>
+                                    <span class="whatif-min-label">${{ whatif_config.loan_amnt.slider_min|intcomma }}</span>
+                                    <span class="whatif-max-label">${{ whatif_config.loan_amnt.slider_max|intcomma }}</span>
+                                </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-loan_amnt"></div>
+                            </div>
+
+                            <!-- Interest Rate -->
+                            <div class="whatif-field-group" data-field="loan_int_rate">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-input-loan_int_rate" class="form-label mb-0 small fw-semibold text-secondary">Interest Rate (%)</label>
+                                    <div class="input-group input-group-sm" style="max-width: 130px;">
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-loan_int_rate"
+                                               name="loan_int_rate"
+                                               data-field="loan_int_rate"
+                                               value="{{ application.interest_rate|floatformat:1 }}"
+                                               data-initial="{{ application.interest_rate|floatformat:1 }}"
+                                               min="{{ whatif_limits.loan_int_rate.min|floatformat:1 }}"
+                                               max="{{ whatif_limits.loan_int_rate.max|floatformat:1 }}"
+                                               step="0.1">
+                                        <span class="input-group-text bg-light text-secondary">%</span>
+                                    </div>
+                                </div>
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-rate"
+                                       data-field="loan_int_rate"
+                                       min="{{ whatif_config.loan_int_rate.slider_min|floatformat:1 }}"
+                                       max="{{ whatif_config.loan_int_rate.slider_max|floatformat:1 }}"
+                                       step="0.1"
+                                       value="{{ application.interest_rate|floatformat:1 }}"
+                                       data-initial="{{ application.interest_rate|floatformat:1 }}"
+                                       data-initial-min="{{ whatif_config.loan_int_rate.slider_min|floatformat:1 }}"
+                                       data-initial-max="{{ whatif_config.loan_int_rate.slider_max|floatformat:1 }}"
+                                       data-initial-step="0.1">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span class="whatif-min-label">{{ whatif_config.loan_int_rate.slider_min|floatformat:1 }}%</span>
+                                    <span class="whatif-max-label">{{ whatif_config.loan_int_rate.slider_max|floatformat:1 }}%</span>
+                                </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-loan_int_rate"></div>
+                            </div>
+
+                            <!-- Purpose & Grade Selects -->
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6 whatif-field-group" data-field="loan_intent">
+                                    <label for="whatif-select-loan_intent" class="form-label mb-1 small fw-semibold text-secondary">Loan Purpose</label>
+                                    <select class="form-select form-select-sm whatif-select"
+                                            id="whatif-select-loan_intent"
+                                            name="loan_intent"
+                                            data-field="loan_intent"
+                                            data-initial="{{ application.loan_type.code }}">
+                                        {% for code, name in whatif_limits.loan_intent.choices %}
+                                            <option value="{{ code }}" {% if application.loan_type.code == code %}selected{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-loan_intent"></div>
+                                </div>
+
+                                <div class="col-12 col-md-6 whatif-field-group" data-field="loan_grade">
+                                    <label for="whatif-select-loan_grade" class="form-label mb-1 small fw-semibold text-secondary">Loan Grade</label>
+                                    <select class="form-select form-select-sm whatif-select"
+                                            id="whatif-select-loan_grade"
+                                            name="loan_grade"
+                                            data-field="loan_grade"
+                                            data-initial="{{ application.loan_grade }}">
+                                        {% for code, name in whatif_limits.loan_grade.choices %}
+                                            <option value="{{ code }}" {% if application.loan_grade == code %}selected{% endif %}>Grade {{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-loan_grade"></div>
                                 </div>
                             </div>
 
-                            <!-- Loan Amount Slider -->
-                            <div>
+                            <div class="fw-bold small text-uppercase tracking-wider text-muted pb-1 pt-2 border-bottom">Applicant Profile</div>
+
+                            <!-- Annual Income -->
+                            <div class="whatif-field-group" data-field="person_income">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label for="whatif-loan" class="form-label mb-0 small fw-semibold text-secondary">Loan Amount</label>
-                                    <span id="whatif-loan-val" class="badge bg-light text-dark border fw-bold">${{ application.loan_amount|floatformat:0|intcomma }}</span>
+                                    <label for="whatif-input-person_income" class="form-label mb-0 small fw-semibold text-secondary">Annual Income</label>
+                                    <div class="input-group input-group-sm" style="max-width: 150px;">
+                                        <span class="input-group-text bg-light text-secondary">$</span>
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-person_income"
+                                               name="person_income"
+                                               data-field="person_income"
+                                               value="{{ application.annual_income|floatformat:0 }}"
+                                               data-initial="{{ application.annual_income|floatformat:0 }}"
+                                               min="{{ whatif_limits.person_income.min|floatformat:0 }}"
+                                               max="{{ whatif_limits.person_income.max|floatformat:0 }}"
+                                               step="{{ whatif_config.person_income.step }}">
+                                    </div>
                                 </div>
-                                <input type="range" class="form-range" id="whatif-loan" min="500" max="{% if application.loan_amount > 50000 %}{{ application.loan_amount|floatformat:0 }}{% else %}50000{% endif %}" step="500" value="{{ application.loan_amount|floatformat:0 }}" data-initial="{{ application.loan_amount|floatformat:0 }}">
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-income"
+                                       data-field="person_income"
+                                       min="{{ whatif_config.person_income.slider_min }}"
+                                       max="{{ whatif_config.person_income.slider_max }}"
+                                       step="{{ whatif_config.person_income.step }}"
+                                       value="{{ application.annual_income|floatformat:0 }}"
+                                       data-initial="{{ application.annual_income|floatformat:0 }}"
+                                       data-initial-min="{{ whatif_config.person_income.slider_min }}"
+                                       data-initial-max="{{ whatif_config.person_income.slider_max }}"
+                                       data-initial-step="{{ whatif_config.person_income.step }}">
                                 <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-                                    <span>$500</span>
-                                    <span>${% if application.loan_amount > 50000 %}{{ application.loan_amount|floatformat:0 }}{% else %}50k{% endif %}</span>
+                                    <span class="whatif-min-label">${{ whatif_config.person_income.slider_min|intcomma }}</span>
+                                    <span class="whatif-max-label">${{ whatif_config.person_income.slider_max|intcomma }}</span>
                                 </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-person_income"></div>
                             </div>
 
-                            <!-- Interest Rate Slider -->
-                            <div>
+                            <!-- Age -->
+                            <div class="whatif-field-group" data-field="person_age">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label for="whatif-rate" class="form-label mb-0 small fw-semibold text-secondary">Interest Rate</label>
-                                    <span id="whatif-rate-val" class="badge bg-light text-dark border fw-bold">{{ application.interest_rate|floatformat:1 }}%</span>
+                                    <label for="whatif-input-person_age" class="form-label mb-0 small fw-semibold text-secondary">Age</label>
+                                    <div class="input-group input-group-sm" style="max-width: 130px;">
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-person_age"
+                                               name="person_age"
+                                               data-field="person_age"
+                                               value="{{ application.age }}"
+                                               data-initial="{{ application.age }}"
+                                               min="{{ whatif_limits.person_age.min|floatformat:0 }}"
+                                               max="{{ whatif_limits.person_age.max|floatformat:0 }}"
+                                               step="1">
+                                        <span class="input-group-text bg-light text-secondary">yrs</span>
+                                    </div>
                                 </div>
-                                <input type="range" class="form-range" id="whatif-rate" min="0.0" max="40.0" step="0.1" value="{{ application.interest_rate|floatformat:1 }}" data-initial="{{ application.interest_rate|floatformat:1 }}">
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-age"
+                                       data-field="person_age"
+                                       min="{{ whatif_config.person_age.slider_min }}"
+                                       max="{{ whatif_config.person_age.slider_max }}"
+                                       step="1"
+                                       value="{{ application.age }}"
+                                       data-initial="{{ application.age }}"
+                                       data-initial-min="{{ whatif_config.person_age.slider_min }}"
+                                       data-initial-max="{{ whatif_config.person_age.slider_max }}"
+                                       data-initial-step="1">
                                 <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-                                    <span>0.0%</span>
-                                    <span>40.0%</span>
+                                    <span class="whatif-min-label">{{ whatif_config.person_age.slider_min }} yrs</span>
+                                    <span class="whatif-max-label">{{ whatif_config.person_age.slider_max }} yrs</span>
                                 </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-person_age"></div>
                             </div>
 
-                            <!-- Employment Length Slider -->
-                            <div>
+                            <!-- Employment Length -->
+                            <div class="whatif-field-group" data-field="person_emp_length">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label for="whatif-emp" class="form-label mb-0 small fw-semibold text-secondary">Employment Length</label>
-                                    <span id="whatif-emp-val" class="badge bg-light text-dark border fw-bold">{{ application.employment_length|floatformat:0 }} yrs</span>
+                                    <label for="whatif-input-person_emp_length" class="form-label mb-0 small fw-semibold text-secondary">Employment Length</label>
+                                    <div class="input-group input-group-sm" style="max-width: 130px;">
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-person_emp_length"
+                                               name="person_emp_length"
+                                               data-field="person_emp_length"
+                                               value="{{ application.employment_length|floatformat:0 }}"
+                                               data-initial="{{ application.employment_length|floatformat:0 }}"
+                                               min="{{ whatif_limits.person_emp_length.min|floatformat:0 }}"
+                                               max="{{ whatif_limits.person_emp_length.max|floatformat:0 }}"
+                                               step="1">
+                                        <span class="input-group-text bg-light text-secondary">yrs</span>
+                                    </div>
                                 </div>
-                                <input type="range" class="form-range" id="whatif-emp" min="0" max="60" step="1" value="{{ application.employment_length|floatformat:0 }}" data-initial="{{ application.employment_length|floatformat:0 }}">
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-emp"
+                                       data-field="person_emp_length"
+                                       min="{{ whatif_config.person_emp_length.slider_min }}"
+                                       max="{{ whatif_config.person_emp_length.slider_max }}"
+                                       step="1"
+                                       value="{{ application.employment_length|floatformat:0 }}"
+                                       data-initial="{{ application.employment_length|floatformat:0 }}"
+                                       data-initial-min="{{ whatif_config.person_emp_length.slider_min }}"
+                                       data-initial-max="{{ whatif_config.person_emp_length.slider_max }}"
+                                       data-initial-step="1">
                                 <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-                                    <span>0 yrs</span>
-                                    <span>60 yrs</span>
+                                    <span class="whatif-min-label">{{ whatif_config.person_emp_length.slider_min }} yrs</span>
+                                    <span class="whatif-max-label">{{ whatif_config.person_emp_length.slider_max }} yrs</span>
+                                </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-person_emp_length"></div>
+                            </div>
+
+                            <!-- Credit History Length -->
+                            <div class="whatif-field-group" data-field="cb_person_cred_hist_length">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="whatif-input-cb_person_cred_hist_length" class="form-label mb-0 small fw-semibold text-secondary">Credit History Length</label>
+                                    <div class="input-group input-group-sm" style="max-width: 130px;">
+                                        <input type="number" class="form-control form-control-sm text-end whatif-num-input"
+                                               id="whatif-input-cb_person_cred_hist_length"
+                                               name="cb_person_cred_hist_length"
+                                               data-field="cb_person_cred_hist_length"
+                                               value="{{ application.credit_history_length }}"
+                                               data-initial="{{ application.credit_history_length }}"
+                                               min="{{ whatif_limits.cb_person_cred_hist_length.min|floatformat:0 }}"
+                                               max="{{ whatif_limits.cb_person_cred_hist_length.max|floatformat:0 }}"
+                                               step="1">
+                                        <span class="input-group-text bg-light text-secondary">yrs</span>
+                                    </div>
+                                </div>
+                                <input type="range" class="form-range whatif-range"
+                                       id="whatif-cred"
+                                       data-field="cb_person_cred_hist_length"
+                                       min="{{ whatif_config.cb_person_cred_hist_length.slider_min }}"
+                                       max="{{ whatif_config.cb_person_cred_hist_length.slider_max }}"
+                                       step="1"
+                                       value="{{ application.credit_history_length }}"
+                                       data-initial="{{ application.credit_history_length }}"
+                                       data-initial-min="{{ whatif_config.cb_person_cred_hist_length.slider_min }}"
+                                       data-initial-max="{{ whatif_config.cb_person_cred_hist_length.slider_max }}"
+                                       data-initial-step="1">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span class="whatif-min-label">{{ whatif_config.cb_person_cred_hist_length.slider_min }} yrs</span>
+                                    <span class="whatif-max-label">{{ whatif_config.cb_person_cred_hist_length.slider_max }} yrs</span>
+                                </div>
+                                <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-cb_person_cred_hist_length"></div>
+                            </div>
+
+                            <!-- Home Ownership & Default Selects -->
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6 whatif-field-group" data-field="person_home_ownership">
+                                    <label for="whatif-select-person_home_ownership" class="form-label mb-1 small fw-semibold text-secondary">Home Ownership</label>
+                                    <select class="form-select form-select-sm whatif-select"
+                                            id="whatif-select-person_home_ownership"
+                                            name="person_home_ownership"
+                                            data-field="person_home_ownership"
+                                            data-initial="{{ application.home_ownership }}">
+                                        {% for code, name in whatif_limits.person_home_ownership.choices %}
+                                            <option value="{{ code }}" {% if application.home_ownership == code %}selected{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-person_home_ownership"></div>
+                                </div>
+
+                                <div class="col-12 col-md-6 whatif-field-group" data-field="cb_person_default_on_file">
+                                    <label for="whatif-select-cb_person_default_on_file" class="form-label mb-1 small fw-semibold text-secondary">Previous Default</label>
+                                    <select class="form-select form-select-sm whatif-select"
+                                            id="whatif-select-cb_person_default_on_file"
+                                            name="cb_person_default_on_file"
+                                            data-field="cb_person_default_on_file"
+                                            data-initial="{{ application.previous_default }}">
+                                        {% for code, name in whatif_limits.cb_person_default_on_file.choices %}
+                                            <option value="{{ code }}" {% if application.previous_default == code %}selected{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="whatif-inline-error text-danger small mt-1 d-none" id="whatif-err-cb_person_default_on_file"></div>
                                 </div>
                             </div>
                         </div>
@@ -642,18 +881,21 @@
 
                     <!-- Right Column: Simulated Result Panel -->
                     <div class="col-12 col-lg-5">
-                        <div class="p-3 rounded-3 text-center border" style="background: #F8FAFC;">
-                            <div class="text-muted small fw-semibold text-uppercase tracking-wider mb-1">Simulated Credit Score</div>
-                            <div class="d-flex justify-content-center align-items-baseline gap-1 mb-2">
-                                <span id="whatif-score" class="display-6 fw-bold text-dark">{{ application.prediction.credit_score }}</span>
+                        <div class="p-4 rounded-4 text-center border position-sticky" style="top: 24px; background: #F8FAFC;" id="whatif-result-panel">
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Simulated Credit Score</span>
+                                <span id="whatif-loading-spinner" class="spinner-border spinner-border-sm text-teal d-none" role="status" style="width: 14px; height: 14px; color: #0F766E;"></span>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-baseline gap-1 mb-2" id="whatif-score-box">
+                                <span id="whatif-score" class="display-6 fw-bold text-dark" data-saved="{{ application.prediction.credit_score }}">{{ application.prediction.credit_score }}</span>
                                 <span class="text-muted fs-6">/900</span>
                             </div>
 
                             <div class="d-flex justify-content-center align-items-center gap-2 mb-2">
-                                <span id="whatif-risk-pill" class="risk-badge risk-{{ application.prediction.risk_level|lower }}">
+                                <span id="whatif-risk-pill" class="risk-badge risk-{{ application.prediction.risk_level|lower }}" data-saved-level="{{ application.prediction.risk_level|lower }}" data-saved-label="{{ application.prediction.risk_level }} Risk">
                                     {{ application.prediction.risk_level }} Risk
                                 </span>
-                                <span id="whatif-prob" class="small text-muted fw-semibold">
+                                <span id="whatif-prob" class="small text-muted fw-semibold" data-saved="{% widthratio application.prediction.default_probability 1 100 as p %}{{ p }}%">
                                     {% widthratio application.prediction.default_probability 1 100 as p %}{{ p }}%
                                 </span>
                             </div>
@@ -664,7 +906,7 @@
                                 </span>
                             </div>
 
-                            <div id="whatif-error" class="alert alert-warning py-1 px-2 mt-2 small d-none" role="alert"></div>
+                            <div id="whatif-error" class="alert alert-warning py-2 px-3 mt-3 small d-none" role="alert"></div>
                         </div>
                     </div>
                 </div>
