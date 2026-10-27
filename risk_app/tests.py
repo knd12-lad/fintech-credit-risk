@@ -1717,5 +1717,177 @@ class RiskWiseMasterTestSuite(TestCase):
             self.assertNotIn("https://plausible.io/js/script.js", pub_res_empty.content.decode())
             self.assertNotIn("data-domain=", pub_res_empty.content.decode())
 
+    # -------------------------------------------------------------------------
+    # TEST 46: History Edit and Delete suite
+    # -------------------------------------------------------------------------
+    def test_46_history_edit_and_delete_suite(self):
+        """
+        Phase 13 Task 3.5:
+        - delete removes the application and its prediction
+        - another user's attempt returns 404 and deletes nothing
+        - GET on the delete URL returns 405
+        - anonymous is redirected to login
+        - a view-as session cannot delete
+        - edit GET is pre-filled with the saved values
+        - edit POST updates the fields and the stored prediction equals predict_credit_risk for the new values while id and created_at are unchanged
+        - another user gets 404
+        - invalid POST changes nothing
+        - ActivityLog rows are created
+        - the history page shows two icon buttons with aria-labels for every row and no visible 'Edit'/'Delete' words
+        """
+        from decimal import Decimal
+
+        app_to_del = LoanApplication.objects.create(
+            user=self.user1,
+            loan_type=self.loan_types["PERSONAL"],
+            full_name=self.user1.full_name,
+            age=29,
+            annual_income=Decimal("55000"),
+            employment_length=4,
+            home_ownership="RENT",
+            loan_grade="C",
+            loan_amount=Decimal("10000"),
+            interest_rate=11.5,
+            previous_default="N",
+            credit_history_length=5,
+        )
+        pred_to_del = Prediction.objects.create(
+            application=app_to_del,
+            default_probability=0.22,
+            credit_score=680,
+            risk_level="Medium",
+            predicted_status=0,
+        )
+
+        del_url = reverse("history_delete", kwargs={"application_id": app_to_del.id})
+        edit_url = reverse("history_edit", kwargs={"application_id": self.app1.id})
+
+        # 1. Anonymous is redirected to login
+        anon_client = Client()
+        res_del_anon = anon_client.post(del_url)
+        self.assertEqual(res_del_anon.status_code, 302)
+        self.assertTrue(res_del_anon["Location"].startswith(reverse("login")))
+
+        res_edit_anon = anon_client.get(edit_url)
+        self.assertEqual(res_edit_anon.status_code, 302)
+        self.assertTrue(res_edit_anon["Location"].startswith(reverse("login")))
+
+        # 2. GET on delete URL returns 405
+        self.client.force_login(self.user1)
+        res_del_get = self.client.get(del_url)
+        self.assertEqual(res_del_get.status_code, 405)
+
+        # 3. Another user gets 404 for delete and edit
+        client_user2 = Client()
+        client_user2.force_login(self.user2)
+        res_del_other = client_user2.post(del_url)
+        self.assertEqual(res_del_other.status_code, 404)
+        self.assertTrue(LoanApplication.objects.filter(pk=app_to_del.id).exists())
+
+        res_edit_other = client_user2.get(edit_url)
+        self.assertEqual(res_edit_other.status_code, 404)
+
+        # 4. A view-as session cannot delete
+        admin_client = Client()
+        admin_client.force_login(self.user1)
+        session = admin_client.session
+        session["view_as_admin_id"] = self.user2.pk
+        session.save()
+        res_view_as_del = admin_client.post(del_url)
+        self.assertEqual(res_view_as_del.status_code, 302)
+        self.assertTrue(LoanApplication.objects.filter(pk=app_to_del.id).exists())
+
+        # 5. Delete removes application and its prediction; creates ActivityLog
+        self.client.force_login(self.user1)
+        del_app_id = app_to_del.id
+        del_pred_id = pred_to_del.id
+        res_del = self.client.post(del_url)
+        self.assertEqual(res_del.status_code, 302)
+        self.assertEqual(res_del["Location"], reverse("history"))
+        self.assertFalse(LoanApplication.objects.filter(pk=del_app_id).exists())
+        self.assertFalse(Prediction.objects.filter(pk=del_pred_id).exists())
+        self.assertTrue(
+            ActivityLog.objects.filter(user=self.user1, action="Prediction deleted", details__icontains=str(del_app_id)).exists()
+        )
+
+        # 6. Edit GET is pre-filled with saved values
+        res_edit_get = self.client.get(edit_url)
+        self.assertEqual(res_edit_get.status_code, 200)
+        self.assertIn("Edit assessment", res_edit_get.content.decode())
+        self.assertIn("Update and recalculate", res_edit_get.content.decode())
+        self.assertIn(reverse("history"), res_edit_get.content.decode())
+        self.assertIn('name="person_income"', res_edit_get.content.decode())
+        self.assertIn("75000", res_edit_get.content.decode())
+
+        # 7. Edit invalid POST changes nothing
+        orig_age = self.app1.age
+        res_edit_inv = self.client.post(edit_url, {"person_age": "999"})
+        self.assertEqual(res_edit_inv.status_code, 200)
+        self.app1.refresh_from_db()
+        self.assertEqual(self.app1.age, orig_age)
+
+        # 8. Edit valid POST updates fields and stored prediction equals predict_credit_risk; id and created_at unchanged
+        orig_id = self.app1.id
+        orig_created_at = self.app1.created_at
+        edit_payload = {
+            "person_age": 35,
+            "person_income": "88000",
+            "person_emp_length": "9",
+            "person_home_ownership": "MORTGAGE",
+            "loan_intent": "EDUCATION",
+            "loan_grade": "A",
+            "loan_amnt": "18000",
+            "loan_int_rate": "7.2",
+            "cb_person_default_on_file": "N",
+            "cb_person_cred_hist_length": "8",
+        }
+        res_edit_post = self.client.post(edit_url, edit_payload)
+        self.assertEqual(res_edit_post.status_code, 302)
+        self.assertEqual(res_edit_post["Location"], reverse("result", kwargs={"application_id": orig_id}))
+
+        self.app1.refresh_from_db()
+        self.assertEqual(self.app1.id, orig_id)
+        self.assertEqual(self.app1.created_at, orig_created_at)
+        self.assertEqual(self.app1.age, 35)
+        self.assertEqual(float(self.app1.annual_income), 88000.0)
+        self.assertEqual(self.app1.home_ownership, "MORTGAGE")
+
+        expected_pred = predict_credit_risk({
+            "person_age": 35,
+            "person_income": 88000.0,
+            "person_emp_length": 9.0,
+            "person_home_ownership": "MORTGAGE",
+            "loan_intent": "EDUCATION",
+            "loan_grade": "A",
+            "loan_amnt": 18000.0,
+            "loan_int_rate": 7.2,
+            "cb_person_default_on_file": "N",
+            "cb_person_cred_hist_length": 8,
+        })
+        self.app1.prediction.refresh_from_db()
+        self.assertEqual(self.app1.prediction.credit_score, expected_pred["credit_score"])
+        self.assertAlmostEqual(self.app1.prediction.default_probability, expected_pred["default_probability"], places=4)
+        self.assertEqual(self.app1.prediction.risk_level, expected_pred["risk_level"])
+        self.assertTrue(
+            ActivityLog.objects.filter(user=self.user1, action="Prediction edited", details__icontains=str(orig_id)).exists()
+        )
+
+        # 9. History page shows two icon buttons with aria-labels for every row and no visible 'Edit'/'Delete' words
+        res_hist = self.client.get(reverse("history"))
+        self.assertEqual(res_hist.status_code, 200)
+        hist_html = res_hist.content.decode()
+        self.assertIn("bi-pencil-square", hist_html)
+        self.assertIn("bi-trash3", hist_html)
+        self.assertIn('aria-label="Edit assessment from', hist_html)
+        self.assertIn('aria-label="Delete assessment from', hist_html)
+        self.assertIn('Delete this assessment?', hist_html)
+        tbody_start = hist_html.find("<tbody>")
+        tbody_end = hist_html.find("</tbody>")
+        self.assertNotEqual(tbody_start, -1)
+        tbody_html = hist_html[tbody_start:tbody_end]
+        self.assertNotIn(">Edit<", tbody_html)
+        self.assertNotIn(">Delete<", tbody_html)
+
+
 
 

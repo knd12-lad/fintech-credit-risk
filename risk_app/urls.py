@@ -47,6 +47,8 @@ urlpatterns = [
     # Risk Checker
     path("risk-checker/", views.risk_checker_view, name="risk_checker"),
     path("history/", views.history_view, name="history"),
+    path("history/<int:application_id>/edit/", views.history_edit, name="history_edit"),
+    path("history/<int:application_id>/delete/", views.history_delete, name="history_delete"),
     path(
         "result/<int:application_id>/",
         views.result_view,

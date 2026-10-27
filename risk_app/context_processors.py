@@ -10,16 +10,34 @@ def currency_context(request):
     }
 
 
+def is_read_only_session(request):
+    """
+    Check if the current session is read-only (admin view-as or demo mode).
+    """
+    session = getattr(request, "session", None)
+    if not session:
+        return False
+    if session.get("view_as_admin_id"):
+        return True
+    if session.get("is_demo_mode") or getattr(request, "is_demo_mode", False):
+        return True
+    return False
+
+
 def view_as_context(request):
     """
-    Exposes view_as_admin and the viewed user when the view-as session key exists.
+    Exposes view_as_admin, view_as_target, and is_read_only when the view-as session key exists.
     """
     session = getattr(request, "session", None)
     admin_id = session.get("view_as_admin_id") if session else None
+    read_only = is_read_only_session(request)
+
     if not admin_id:
         return {
             "view_as_admin": None,
             "view_as_target": None,
+            "is_read_only": read_only,
+            "is_read_only_session": read_only,
         }
 
     from .models import User
@@ -29,4 +47,7 @@ def view_as_context(request):
     return {
         "view_as_admin": admin_user,
         "view_as_target": target_user,
+        "is_read_only": read_only,
+        "is_read_only_session": read_only,
     }
+

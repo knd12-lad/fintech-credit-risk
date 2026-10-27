@@ -107,8 +107,8 @@ class ViewAsReadOnlyMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        session = getattr(request, "session", None)
-        if session and session.get("view_as_admin_id"):
+        from .context_processors import is_read_only_session
+        if is_read_only_session(request):
             if request.method not in ("GET", "HEAD", "OPTIONS"):
                 if request.path != "/view-as/exit/":
                     try:

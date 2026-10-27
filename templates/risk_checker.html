@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Risk Checker | RiskWise{% endblock %}
+{% block title %}{% if page_title %}{{ page_title }} | RiskWise{% else %}Risk Checker | RiskWise{% endif %}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex">{% endblock %}
 {% block analytics %}{% endblock %}
 
 {% block content %}
 <section class="container py-5">
     <div class="text-center mb-4">
-        <h1 class="fw-bold">Credit Risk Checker</h1>
+        <h1 class="fw-bold">{% if page_heading %}{{ page_heading }}{% else %}Credit Risk Checker{% endif %}</h1>
         <p class="text-muted">
-            Enter your financial details to estimate your credit risk.
+            {% if page_subtitle %}{{ page_subtitle }}{% else %}Enter your financial details to estimate your credit risk.{% endif %}
         </p>
     </div>
 
@@ -50,10 +50,10 @@
 
                 <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">
-                        Check Credit Risk
+                        {% if submit_btn_label %}{{ submit_btn_label }}{% else %}Check Credit Risk{% endif %}
                     </button>
 
-                    <a href="{% url 'home' %}"
+                    <a href="{% if cancel_url %}{{ cancel_url }}{% else %}{% url 'home' %}{% endif %}"
                        class="btn btn-outline-secondary btn-lg">
                         Cancel
                     </a>

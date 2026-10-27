@@ -9,7 +9,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import connection, transaction
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -200,6 +200,125 @@ def history_view(request):
         request,
         "history.html",
         {"applications": applications},
+    )
+
+
+@login_required
+def history_delete(request, application_id):
+    """
+    Delete a saved assessment. Owner only, POST only, CSRF protected.
+    Removes LoanApplication and its cascading Prediction inside transaction.atomic,
+    writes ActivityLog 'Prediction deleted', shows success message, redirects to history.
+    """
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    application = get_object_or_404(LoanApplication, pk=application_id, user=request.user)
+
+    with transaction.atomic():
+        app_id = application.id
+        application.delete()
+
+        ActivityLog.objects.create(
+            user=request.user,
+            action="Prediction deleted",
+            details=f"Application #{app_id}",
+            ip_address=request.META.get("REMOTE_ADDR"),
+        )
+
+    messages.success(request, "Assessment deleted successfully.")
+    return redirect("history")
+
+
+@login_required
+def history_edit(request, application_id):
+    """
+    Edit a saved assessment. Owner only (404 otherwise).
+    Reuses templates/risk_checker.html and RiskCheckerForm.
+    Initial values mapped from saved application.
+    Page title 'Edit assessment', submit button 'Update and recalculate', Cancel link to history.
+    On valid POST: runs predict_credit_risk, updates the same LoanApplication (preserves id,
+    user, full_name, created_at), updates its Prediction, logs ActivityLog 'Prediction edited',
+    and redirects to the result page.
+    """
+    application = get_object_or_404(
+        LoanApplication.objects.select_related("loan_type", "prediction"),
+        pk=application_id,
+        user=request.user,
+    )
+
+    if request.method == "POST":
+        form = RiskCheckerForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data.copy()
+            data["person_income"] = float(data["person_income"])
+            data["loan_amnt"] = float(data["loan_amnt"])
+
+            try:
+                result = predict_credit_risk(data)
+                loan_type = LoanType.objects.get(code=data["loan_intent"], is_active=True)
+
+                with transaction.atomic():
+                    application.loan_type = loan_type
+                    application.age = data["person_age"]
+                    application.annual_income = data["person_income"]
+                    application.employment_length = data["person_emp_length"]
+                    application.home_ownership = data["person_home_ownership"]
+                    application.loan_grade = data["loan_grade"]
+                    application.loan_amount = data["loan_amnt"]
+                    application.interest_rate = data["loan_int_rate"]
+                    application.previous_default = data["cb_person_default_on_file"]
+                    application.credit_history_length = data["cb_person_cred_hist_length"]
+                    application.save()
+
+                    Prediction.objects.update_or_create(
+                        application=application,
+                        defaults={
+                            "default_probability": result["default_probability"],
+                            "credit_score": result["credit_score"],
+                            "risk_level": result["risk_level"],
+                            "predicted_status": 1 if result["default_probability"] >= 0.5 else 0,
+                        },
+                    )
+
+                    ActivityLog.objects.create(
+                        user=request.user,
+                        action="Prediction edited",
+                        details=f"Application #{application.id}",
+                        ip_address=request.META.get("REMOTE_ADDR"),
+                    )
+
+                messages.success(request, "Assessment updated successfully.")
+                return redirect("result", application_id=application.id)
+            except Exception as e:
+                logger.exception("Failed to update prediction: %s", e)
+                messages.error(request, "An error occurred while updating the prediction.")
+    else:
+        initial_data = {
+            "person_age": application.age,
+            "person_income": application.annual_income,
+            "person_emp_length": application.employment_length,
+            "person_home_ownership": application.home_ownership,
+            "loan_grade": application.loan_grade,
+            "loan_amnt": application.loan_amount,
+            "loan_int_rate": application.interest_rate,
+            "cb_person_default_on_file": application.previous_default,
+            "cb_person_cred_hist_length": application.credit_history_length,
+            "loan_intent": application.loan_type.code,
+        }
+        form = RiskCheckerForm(initial=initial_data)
+
+    return render(
+        request,
+        "risk_checker.html",
+        {
+            "form": form,
+            "page_title": "Edit assessment",
+            "page_heading": "Edit assessment",
+            "page_subtitle": "Update your loan details to recalculate your credit risk.",
+            "submit_btn_label": "Update and recalculate",
+            "cancel_url": reverse_lazy("history"),
+        },
     )
 
 
